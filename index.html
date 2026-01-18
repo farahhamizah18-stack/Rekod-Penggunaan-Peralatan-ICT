@@ -1,0 +1,329 @@
+
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>REKOD ICT - SJKC Chi Chih</title>
+    <!-- Library Luaran (CDN) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; }
+        input[type="date"]::-webkit-calendar-picker-indicator,
+        input[type="time"]::-webkit-calendar-picker-indicator { cursor: pointer; filter: invert(0.5); }
+        .chart-container { position: relative; margin: auto; height: 260px; width: 100%; }
+        .fade-in { animation: fadeIn 0.4s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .glass-card { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); }
+    </style>
+<link rel="stylesheet" href="/index.css">
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useCallback, useRef } = React;
+
+        // --- KONFIGURASI & KONSTAN ---
+        const UserStatus = { GURU: 'Guru', MURID: 'Murid' };
+        const EquipmentType = { LAPTOP: 'Komputer Riba', ACCESSORIES: 'Aksesori' };
+        const STORAGE_KEY = 'sjkc_chichih_ict_records';
+        const GAS_URL = 'https://script.google.com/macros/s/AKfycbyn_SLD1stVo1azcb_7Od6MjrylZw8XOo0Mm11xNstR2zizL82jT60jd42VLhMZeSK5/exec';
+
+        // --- SERVIS SIMPANAN DATA ---
+        const storageService = {
+            getRecords: () => {
+                const data = localStorage.getItem(STORAGE_KEY);
+                return data ? JSON.parse(data) : [];
+            },
+            saveRecord: async (record) => {
+                const records = storageService.getRecords();
+                localStorage.setItem(STORAGE_KEY, JSON.stringify([record, ...records]));
+                try {
+                    // Hantar ke Google Apps Script
+                    await fetch(GAS_URL, { 
+                        method: 'POST', 
+                        mode: 'no-cors', 
+                        headers: { 'Content-Type': 'application/json' }, 
+                        body: JSON.stringify(record) 
+                    });
+                } catch (e) { console.error('Ralat GAS:', e); }
+                return true;
+            },
+            getStats: (records) => {
+                const now = new Date();
+                const todayStr = now.toISOString().split('T')[0];
+                return {
+                    todayUsage: records.filter(r => r.borrowDate === todayStr).length,
+                    currentlyBorrowed: records.filter(r => new Date(r.returnDate) >= now).length,
+                    monthlyTotal: records.filter(r => new Date(r.borrowDate).getMonth() === now.getMonth()).length
+                };
+            }
+        };
+
+        // --- KOMPONEN: TOAST KEJAYAAN ---
+        const SuccessToast = ({ show, onClose }) => {
+            useEffect(() => { if (show) { const t = setTimeout(onClose, 5000); return () => clearTimeout(t); } }, [show]);
+            if (!show) return null;
+            return (
+                <div className="fixed top-5 right-5 z-50 animate-bounce">
+                    <div className="bg-white border-l-4 border-green-500 shadow-2xl rounded-xl p-5 flex items-start space-x-4 max-w-sm">
+                        <div className="bg-green-100 p-2 rounded-full"><i className="fas fa-check text-green-600"></i></div>
+                        <div>
+                            <h4 className="font-bold text-slate-800">Berjaya!</h4>
+                            <p className="text-xs text-slate-600">Data berjaya disimpan. Selamat menggunakan peralatan ICT dengan berhemah.</p>
+                        </div>
+                        <button onClick={onClose} className="text-slate-400 hover:text-slate-600 transition-colors"><i className="fas fa-times"></i></button>
+                    </div>
+                </div>
+            );
+        };
+
+        // --- KOMPONEN: DASHBOARD ---
+        const Dashboard = ({ recentRecords }) => {
+            const [period, setPeriod] = useState('harian');
+            const chartRef = useRef(null);
+            const chartInstance = useRef(null);
+
+            const getFiltered = () => {
+                const now = new Date();
+                return recentRecords.filter(r => {
+                    const d = new Date(r.borrowDate);
+                    if (period === 'harian') return d.toDateString() === now.toDateString();
+                    if (period === 'mingguan') return (now - d) <= 7*24*60*60*1000;
+                    if (period === 'bulanan') return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+                    return d.getFullYear() === now.getFullYear();
+                });
+            };
+
+            const filtered = getFiltered();
+            const laptopCount = filtered.filter(r => r.equipmentTypes.includes(EquipmentType.LAPTOP)).length;
+            const accessCount = filtered.filter(r => r.equipmentTypes.includes(EquipmentType.ACCESSORIES)).length;
+
+            useEffect(() => {
+                if (chartInstance.current) chartInstance.current.destroy();
+                const ctx = chartRef.current.getContext('2d');
+                chartInstance.current = new Chart(ctx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Laptop', 'Aksesori'],
+                        datasets: [{
+                            data: [laptopCount, accessCount],
+                            backgroundColor: ['#FF1493', '#FFD700'], // Shock Pink & Kuning
+                            hoverBackgroundColor: ['#FF69B4', '#FFFF00'],
+                            borderColor: '#ffffff',
+                            borderWidth: 4,
+                            borderRadius: 10,
+                            spacing: 3
+                        }]
+                    },
+                    options: { 
+                        responsive: true, 
+                        maintainAspectRatio: false, 
+                        cutout: '70%',
+                        plugins: { legend: { position: 'bottom', labels: { font: { weight: 'bold', family: 'Inter' } } } }
+                    }
+                });
+            }, [laptopCount, accessCount, period]);
+
+            return (
+                <div className="space-y-6 fade-in">
+                    <div className="flex justify-between items-center bg-white p-4 rounded-2xl shadow-sm border border-slate-100">
+                        <h4 className="font-bold text-slate-800 text-sm uppercase tracking-wider">Statistik Penggunaan</h4>
+                        <div className="flex bg-slate-100 p-1 rounded-xl">
+                            {['harian', 'mingguan', 'bulanan', 'tahunan'].map(p => (
+                                <button key={p} onClick={() => setPeriod(p)} className={`px-3 py-1.5 rounded-lg text-[10px] font-black uppercase transition-all ${period === p ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}>{p}</button>
+                            ))}
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <div className="lg:col-span-1 bg-white p-8 rounded-3xl shadow-sm border border-slate-100 flex flex-col items-center justify-center">
+                            <h5 className="text-xs font-bold text-slate-400 uppercase mb-4">Nisbah Peralatan</h5>
+                            <div className="chart-container"><canvas ref={chartRef}></canvas></div>
+                        </div>
+                        
+                        <div className="lg:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className="bg-gradient-to-br from-[#FF1493] to-[#C71585] p-6 rounded-3xl text-white shadow-lg shadow-pink-100 flex items-center justify-between">
+                                <div><p className="text-xs font-bold uppercase opacity-80">Laptop</p><h3 className="text-5xl font-black">{laptopCount}</h3></div>
+                                <i className="fas fa-laptop text-6xl opacity-20"></i>
+                            </div>
+                            <div className="bg-gradient-to-br from-[#FFD700] to-[#DAA520] p-6 rounded-3xl text-slate-800 shadow-lg shadow-yellow-100 flex items-center justify-between">
+                                <div><p className="text-xs font-bold uppercase opacity-60">Aksesori</p><h3 className="text-5xl font-black">{accessCount}</h3></div>
+                                <i className="fas fa-plug text-6xl opacity-20"></i>
+                            </div>
+                            <div className="md:col-span-2 bg-white p-6 rounded-3xl border border-slate-100 flex items-center space-x-6">
+                                <div className="w-14 h-14 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center text-2xl"><i className="fas fa-history"></i></div>
+                                <div>
+                                    <p className="text-slate-400 text-[10px] font-bold uppercase tracking-widest">Aktiviti Terakhir</p>
+                                    <h4 className="font-bold text-slate-700">{recentRecords.length > 0 ? `Rekod terakhir oleh ${recentRecords[0].userName}` : 'Tiada rekod lagi.'}</h4>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden">
+                        <div className="px-8 py-5 border-b bg-slate-50/50 flex justify-between items-center">
+                            <h3 className="font-bold text-slate-800 uppercase text-xs tracking-widest">Senarai 5 Rekod Terkini</h3>
+                        </div>
+                        <div className="overflow-x-auto">
+                            <table className="w-full text-left text-sm">
+                                <thead className="bg-slate-50 text-slate-400 uppercase text-[10px] font-black">
+                                    <tr><th className="px-8 py-4">Nama</th><th className="px-8 py-4">Peralatan</th><th className="px-8 py-4">Tarikh</th><th className="px-8 py-4">Tujuan</th></tr>
+                                </thead>
+                                <tbody className="divide-y divide-slate-50">
+                                    {recentRecords.slice(0,5).map(r => (
+                                        <tr key={r.id} className="hover:bg-blue-50/30 transition-colors">
+                                            <td className="px-8 py-4 font-bold text-slate-700">{r.userName}<br/><span className="text-[10px] text-blue-500 uppercase">{r.status}</span></td>
+                                            <td className="px-8 py-4 text-slate-500 font-medium">{r.equipmentTypes.join(', ')} <span className="text-xs text-slate-400">(#{r.equipmentNo})</span></td>
+                                            <td className="px-8 py-4 text-slate-500">{r.borrowDate}<br/><span className="text-[10px] opacity-60">{r.startTime}</span></td>
+                                            <td className="px-8 py-4 text-slate-400 italic line-clamp-1">"{r.purpose}"</td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        // --- KOMPONEN: BORANG PINJAMAN ---
+        const IctUsageForm = ({ onSuccess }) => {
+            const [loading, setLoading] = useState(false);
+            const [formData, setFormData] = useState({
+                status: UserStatus.GURU, userName: '', equipmentTypes: [], equipmentNo: '1',
+                borrowDate: new Date().toISOString().split('T')[0],
+                returnDate: new Date().toISOString().split('T')[0],
+                startTime: '', endTime: '', purpose: ''
+            });
+
+            useEffect(() => {
+                const now = new Date();
+                const h = String(now.getHours()).padStart(2, '0');
+                const m = String(now.getMinutes()).padStart(2, '0');
+                const eh = String((now.getHours() + 1) % 24).padStart(2, '0');
+                setFormData(prev => ({ ...prev, startTime: `${h}:${m}`, endTime: `${eh}:${m}` }));
+            }, []);
+
+            const handleSubmit = async (e) => {
+                e.preventDefault();
+                if (!formData.userName || formData.equipmentTypes.length === 0 || !formData.purpose) return alert("Sila lengkapkan semua maklumat wajib!");
+                setLoading(true);
+                await onSuccess({ ...formData, id: Math.random().toString(36).substr(2, 9), createdAt: new Date().toISOString() });
+                setLoading(false);
+                setFormData(p => ({ ...p, userName: '', purpose: '', equipmentTypes: [] }));
+            };
+
+            const toggleEq = (t) => setFormData(p => ({ ...p, equipmentTypes: p.equipmentTypes.includes(t) ? p.equipmentTypes.filter(x => x!==t) : [...p.equipmentTypes, t] }));
+
+            return (
+                <div className="bg-white rounded-3xl shadow-2xl overflow-hidden fade-in border border-slate-100">
+                    <div className="bg-blue-600 p-10 text-white text-center">
+                        <i className="fas fa-edit text-4xl mb-4 opacity-40"></i>
+                        <h3 className="text-2xl font-black uppercase tracking-widest">Borang Pendaftaran</h3>
+                        <p className="text-blue-100 text-xs mt-2 font-medium">Sila isi maklumat penggunaan anda secara jujur.</p>
+                    </div>
+                    <form onSubmit={handleSubmit} className="p-10 space-y-10">
+                        {/* Bahagian 1 */}
+                        <div className="space-y-4">
+                            <div className="flex items-center space-x-2 text-blue-600 font-black text-[10px] uppercase tracking-[0.2em]"><span className="w-6 h-6 rounded-full bg-blue-100 flex items-center justify-center">1</span><span>Profil Pengguna</span></div>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div className="space-y-1"><label className="text-[10px] font-black text-slate-400 uppercase">Status</label><select value={formData.status} onChange={e => setFormData({...formData, status: e.target.value})} className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-blue-500 outline-none transition-all font-bold text-slate-700"><option value={UserStatus.GURU}>Guru</option><option value={UserStatus.MURID}>Murid</option></select></div>
+                                <div className="space-y-1"><label className="text-[10px] font-black text-slate-400 uppercase">Nama Penuh</label><input type="text" value={formData.userName} onChange={e => setFormData({...formData, userName: e.target.value})} placeholder="Cth: Ahmad bin Bakar" className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-blue-500 outline-none transition-all font-bold" required /></div>
+                            </div>
+                        </div>
+
+                        {/* Bahagian 2 */}
+                        <div className="space-y-4">
+                            <div className="flex items-center space-x-2 text-blue-600 font-black text-[10px] uppercase tracking-[0.2em]"><span className="w-6 h-6 rounded-full bg-blue-100 flex items-center justify-center">2</span><span>Peralatan</span></div>
+                            <div className="grid grid-cols-2 gap-4">
+                                <button type="button" onClick={() => toggleEq(EquipmentType.LAPTOP)} className={`p-6 border-2 rounded-3xl transition-all flex flex-col items-center space-y-2 ${formData.equipmentTypes.includes(EquipmentType.LAPTOP) ? 'border-blue-600 bg-blue-50 text-blue-700 shadow-inner' : 'border-slate-100 bg-slate-50 text-slate-400'}`}><i className="fas fa-laptop text-2xl"></i><span className="font-black text-xs uppercase">Laptop</span></button>
+                                <button type="button" onClick={() => toggleEq(EquipmentType.ACCESSORIES)} className={`p-6 border-2 rounded-3xl transition-all flex flex-col items-center space-y-2 ${formData.equipmentTypes.includes(EquipmentType.ACCESSORIES) ? 'border-blue-600 bg-blue-50 text-blue-700 shadow-inner' : 'border-slate-100 bg-slate-50 text-slate-400'}`}><i className="fas fa-plug text-2xl"></i><span className="font-black text-xs uppercase">Aksesori</span></button>
+                            </div>
+                            <div className="space-y-1"><label className="text-[10px] font-black text-slate-400 uppercase">No. Peralatan</label><div className="flex flex-wrap gap-2">{['1','2','3','4','5'].map(n => (<button key={n} type="button" onClick={() => setFormData({...formData, equipmentNo: n})} className={`w-11 h-11 rounded-xl font-black transition-all border-2 ${formData.equipmentNo === n ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-slate-400 border-slate-100'}`}>{n}</button>))}</div></div>
+                        </div>
+
+                        {/* Bahagian 3 */}
+                        <div className="space-y-4">
+                            <div className="flex items-center space-x-2 text-blue-600 font-black text-[10px] uppercase tracking-[0.2em]"><span className="w-6 h-6 rounded-full bg-blue-100 flex items-center justify-center">3</span><span>Masa & Tujuan</span></div>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-1"><label className="text-[10px] font-black text-slate-400 uppercase">Tarikh</label><input type="date" value={formData.borrowDate} onChange={e => setFormData({...formData, borrowDate: e.target.value, returnDate: e.target.value})} className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none font-bold" /></div>
+                                <div className="space-y-1"><label className="text-[10px] font-black text-slate-400 uppercase">Masa</label><input type="time" value={formData.startTime} onChange={e => setFormData({...formData, startTime: e.target.value})} className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none font-bold" /></div>
+                            </div>
+                            <div className="space-y-1"><label className="text-[10px] font-black text-slate-400 uppercase">Tujuan Penggunaan</label><textarea value={formData.purpose} onChange={e => setFormData({...formData, purpose: e.target.value})} placeholder="Cth: PdP Sains / Latihan Murid" rows="3" className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-blue-500 outline-none resize-none font-bold" required></textarea></div>
+                        </div>
+
+                        <button type="submit" disabled={loading} className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-blue-300 text-white p-6 rounded-3xl font-black uppercase tracking-widest shadow-2xl shadow-blue-200 transition-all flex items-center justify-center space-x-3 text-lg">
+                            {loading ? <><i className="fas fa-spinner fa-spin"></i><span>Menghantar...</span></> : <><i className="fas fa-paper-plane"></i><span>Hantar Rekod</span></>}
+                        </button>
+                    </form>
+                </div>
+            );
+        };
+
+        // --- KOMPONEN UTAMA ---
+        const App = () => {
+            const [tab, setTab] = useState('form');
+            const [records, setRecords] = useState([]);
+            const [showToast, setShowToast] = useState(false);
+
+            useEffect(() => { setRecords(storageService.getRecords()); }, []);
+
+            const handleSuccess = async (r) => { 
+                await storageService.saveRecord(r); 
+                setShowToast(true); 
+                setRecords(storageService.getRecords()); 
+                setTab('dashboard'); 
+            };
+
+            return (
+                <div className="min-h-screen pb-20">
+                    <header className="bg-white/80 backdrop-blur-md border-b border-slate-100 sticky top-0 z-40 p-4">
+                        <div className="max-w-5xl mx-auto flex items-center justify-between">
+                            <div className="flex items-center space-x-5 cursor-pointer" onClick={() => setTab('form')}>
+                                <img src="https://i.postimg.cc/Xv6nTH13/Untitled-design-(2).png" className="h-14 md:h-16 drop-shadow-sm" alt="Logo SJKC" />
+                                <div>
+                                    <h1 className="text-sm md:text-lg font-black uppercase text-slate-800 leading-none">REKOD PINJAMAN PERALATAN ICT</h1>
+                                    <p className="text-xs md:text-sm text-blue-600 font-bold uppercase tracking-widest mt-1">SJKC CHI CHIH</p>
+                                </div>
+                            </div>
+                            <div className="hidden md:flex bg-slate-100 p-1.5 rounded-2xl space-x-1">
+                                <button onClick={() => setTab('form')} className={`px-6 py-2.5 rounded-xl font-black text-xs uppercase tracking-widest transition-all ${tab === 'form' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}>Rekod Baru</button>
+                                <button onClick={() => setTab('dashboard')} className={`px-6 py-2.5 rounded-xl font-black text-xs uppercase tracking-widest transition-all ${tab === 'dashboard' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}>Dashboard</button>
+                            </div>
+                        </div>
+                    </header>
+
+                    <main className="max-w-5xl mx-auto p-6 md:p-10">
+                        {tab === 'form' ? (
+                            <div className="max-w-2xl mx-auto"><IctUsageForm onSuccess={handleSuccess} /></div>
+                        ) : (
+                            <Dashboard recentRecords={records} />
+                        )}
+                    </main>
+
+                    {/* Navigasi Mobile */}
+                    <nav className="md:hidden fixed bottom-6 left-1/2 -translate-x-1/2 w-[85%] max-w-sm glass-card border border-slate-200 shadow-2xl rounded-3xl flex justify-around p-2 z-50">
+                        <button onClick={() => setTab('form')} className={`flex flex-col items-center justify-center py-3 px-8 rounded-2xl transition-all ${tab === 'form' ? 'bg-blue-600 text-white shadow-lg' : 'text-slate-400'}`}><i className="fas fa-plus-circle text-xl mb-1"></i><span className="text-[9px] font-black uppercase">Tambah</span></button>
+                        <button onClick={() => setTab('dashboard')} className={`flex flex-col items-center justify-center py-3 px-8 rounded-2xl transition-all ${tab === 'dashboard' ? 'bg-blue-600 text-white shadow-lg' : 'text-slate-400'}`}><i className="fas fa-chart-pie text-xl mb-1"></i><span className="text-[9px] font-black uppercase">Statistik</span></button>
+                    </nav>
+
+                    <SuccessToast show={showToast} onClose={() => setShowToast(false)} />
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+<script type="module" src="/index.tsx"></script>
+</body>
+</html>
