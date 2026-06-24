@@ -1,0 +1,823 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>REKOD ICT - SJKC Chi Chih</title>
+    
+    <!-- Library Luaran (CDN) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    
+    <style>
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background-color: #f8fafc; 
+        }
+        input[type="date"]::-webkit-calendar-picker-indicator,
+        input[type="time"]::-webkit-calendar-picker-indicator { 
+            cursor: pointer; 
+            filter: invert(0.5); 
+        }
+        .chart-container { 
+            position: relative; 
+            margin: auto; 
+            height: 200px; 
+            width: 100%; 
+        }
+        .fade-in { 
+            animation: fadeIn 0.4s ease-out; 
+        }
+        @keyframes fadeIn { 
+            from { opacity: 0; transform: translateY(10px); } 
+            to { opacity: 1; transform: translateY(0); } 
+        }
+        .glass-card { 
+            background: rgba(255, 255, 255, 0.95); 
+            backdrop-filter: blur(10px); 
+        }
+    </style>
+</head>
+<body class="bg-slate-50 min-h-screen pb-24 md:pb-12 text-slate-800">
+
+    <!-- Header -->
+    <header class="bg-white/80 backdrop-blur-md border-b border-slate-100 sticky top-0 z-40 p-4">
+        <div class="max-w-5xl mx-auto flex items-center justify-between">
+            <div id="btn-header-logo" class="flex items-center space-x-4 cursor-pointer select-none">
+                <img 
+                    src="https://i.postimg.cc/Xv6nTH13/Untitled-design-(2).png" 
+                    class="h-12 md:h-14 drop-shadow-sm transition-transform hover:scale-105 duration-200"
+                    alt="Logo SJKC Chi Chih" 
+                />
+                <div>
+                    <h1 class="text-xs md:text-base font-black uppercase text-slate-800 leading-none tracking-wide">
+                        REKOD PINJAMAN PERALATAN ICT
+                    </h1>
+                    <p class="text-[10px] md:text-xs text-blue-600 font-bold uppercase tracking-widest mt-1">
+                        SJKC CHI CHIH
+                    </p>
+                </div>
+            </div>
+
+            <!-- Navigasi Desktop -->
+            <div class="hidden md:flex bg-slate-100 p-1 rounded-2xl space-x-1">
+                <button id="nav-form-desktop" class="px-5 py-2 rounded-xl font-black text-xs uppercase tracking-widest transition-all duration-200 bg-white text-blue-600 shadow-sm">
+                    Rekod Baru
+                </button>
+                <button id="nav-dash-desktop" class="px-5 py-2 rounded-xl font-black text-xs uppercase tracking-widest transition-all duration-200 text-slate-400 hover:text-slate-600">
+                    Dashboard
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Konten Utama -->
+    <main class="max-w-5xl mx-auto p-4 md:p-8">
+        
+        <!-- Tab 1: Borang Pinjaman -->
+        <div id="tab-form" class="max-w-2xl mx-auto block fade-in">
+            <div class="bg-white rounded-3xl shadow-xl overflow-hidden border border-slate-100">
+                <div class="bg-gradient-to-r from-blue-600 to-indigo-600 p-8 md:p-10 text-white text-center">
+                    <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-white/10 mb-4 backdrop-blur-sm">
+                        <i class="fas fa-laptop text-2xl text-white"></i>
+                    </div>
+                    <h3 class="text-2xl font-black uppercase tracking-widest">Borang Pendaftaran</h3>
+                    <p class="text-blue-100 text-xs mt-2 font-medium">Sila isi maklumat penggunaan anda secara jujur.</p>
+                </div>
+
+                <form id="ict-form" class="p-6 md:p-10 space-y-8">
+                    <!-- Bahagian 1: Profil -->
+                    <div class="space-y-4">
+                        <div class="flex items-center space-x-2 text-blue-600 font-black text-xs uppercase tracking-widest">
+                            <span class="w-6 h-6 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center text-xs font-bold">1</span>
+                            <span>Profil Pengguna</span>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div class="space-y-1.5">
+                                <label class="text-[10px] font-black text-slate-400 uppercase tracking-wider">Status</label>
+                                <select 
+                                    id="input-status"
+                                    class="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-blue-500 focus:bg-white outline-none transition-all font-bold text-slate-700 cursor-pointer"
+                                >
+                                    <option value="Guru">Guru</option>
+                                    <option value="Murid">Murid</option>
+                                </select>
+                            </div>
+                            <div class="space-y-1.5">
+                                <label class="text-[10px] font-black text-slate-400 uppercase tracking-wider">Nama Penuh</label>
+                                <input 
+                                    type="text" 
+                                    id="input-username"
+                                    placeholder="Cth: Ahmad bin Bakar"
+                                    class="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-blue-500 focus:bg-white outline-none transition-all font-bold text-slate-700"
+                                    required 
+                                />
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Bahagian 2: Peralatan -->
+                    <div class="space-y-4">
+                        <div class="flex items-center space-x-2 text-blue-600 font-black text-xs uppercase tracking-widest">
+                            <span class="w-6 h-6 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center text-xs font-bold">2</span>
+                            <span>Peralatan</span>
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <button 
+                                type="button"
+                                id="btn-equip-laptop"
+                                class="p-6 border-2 rounded-3xl transition-all duration-200 flex flex-col items-center space-y-2 border-slate-100 bg-slate-50 text-slate-400 hover:border-slate-200"
+                            >
+                                <i class="fas fa-laptop text-2xl"></i>
+                                <span class="font-black text-xs uppercase tracking-wide">Laptop</span>
+                            </button>
+                            <button 
+                                type="button"
+                                id="btn-equip-accessory"
+                                class="p-6 border-2 rounded-3xl transition-all duration-200 flex flex-col items-center space-y-2 border-slate-100 bg-slate-50 text-slate-400 hover:border-slate-200"
+                            >
+                                <i class="fas fa-plug text-2xl"></i>
+                                <span class="font-black text-xs uppercase tracking-wide">Aksesori</span>
+                            </button>
+                        </div>
+
+                        <div class="space-y-2">
+                            <label class="text-[10px] font-black text-slate-400 uppercase tracking-wider">No. Peralatan</label>
+                            <div class="flex flex-wrap gap-2" id="equip-no-container">
+                                <button type="button" data-val="1" class="btn-no w-12 h-12 rounded-2xl font-black transition-all border-2 flex items-center justify-center bg-blue-600 text-white border-blue-600 shadow-lg shadow-blue-100">1</button>
+                                <button type="button" data-val="2" class="btn-no w-12 h-12 rounded-2xl font-black transition-all border-2 flex items-center justify-center bg-white text-slate-400 border-slate-100 hover:border-slate-200">2</button>
+                                <button type="button" data-val="3" class="btn-no w-12 h-12 rounded-2xl font-black transition-all border-2 flex items-center justify-center bg-white text-slate-400 border-slate-100 hover:border-slate-200">3</button>
+                                <button type="button" data-val="4" class="btn-no w-12 h-12 rounded-2xl font-black transition-all border-2 flex items-center justify-center bg-white text-slate-400 border-slate-100 hover:border-slate-200">4</button>
+                                <button type="button" data-val="5" class="btn-no w-12 h-12 rounded-2xl font-black transition-all border-2 flex items-center justify-center bg-white text-slate-400 border-slate-100 hover:border-slate-200">5</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Bahagian 3: Masa -->
+                    <div class="space-y-4">
+                        <div class="flex items-center space-x-2 text-blue-600 font-black text-xs uppercase tracking-widest">
+                            <span class="w-6 h-6 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center text-xs font-bold">3</span>
+                            <span>Masa & Tujuan</span>
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="space-y-1.5">
+                                <label class="text-[10px] font-black text-slate-400 uppercase tracking-wider">Tarikh</label>
+                                <input 
+                                    type="date" 
+                                    id="input-date"
+                                    class="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-blue-500 focus:bg-white outline-none font-bold text-slate-700"
+                                />
+                            </div>
+                            <div class="space-y-1.5">
+                                <label class="text-[10px] font-black text-slate-400 uppercase tracking-wider">Masa Mula</label>
+                                <input 
+                                    type="time" 
+                                    id="input-starttime"
+                                    class="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-blue-500 focus:bg-white outline-none font-bold text-slate-700"
+                                />
+                            </div>
+                        </div>
+                        <div class="space-y-1.5">
+                            <label class="text-[10px] font-black text-slate-400 uppercase tracking-wider">Tujuan Penggunaan</label>
+                            <textarea 
+                                id="input-purpose"
+                                placeholder="Cth: PdP Sains / Latihan Murid"
+                                rows="3"
+                                class="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-blue-500 focus:bg-white outline-none resize-none font-bold text-slate-700"
+                                required
+                            ></textarea>
+                        </div>
+                    </div>
+
+                    <button 
+                        type="submit" 
+                        id="btn-submit"
+                        class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 disabled:from-blue-300 disabled:to-indigo-300 text-white p-5 rounded-3xl font-black uppercase tracking-widest shadow-xl shadow-blue-100 transition-all flex items-center justify-center space-x-3 text-lg"
+                    >
+                        <i class="fas fa-paper-plane" id="icon-submit"></i>
+                        <i class="fas fa-spinner animate-spin hidden" id="icon-spinner"></i>
+                        <span id="text-submit">Hantar Rekod</span>
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Tab 2: Dashboard -->
+        <div id="tab-dashboard" class="space-y-6 hidden fade-in">
+            <!-- Filter Period -->
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center bg-white p-4 rounded-2xl shadow-sm border border-slate-100 gap-3">
+                <h4 class="font-bold text-slate-800 text-xs uppercase tracking-wider flex items-center space-x-2">
+                    <i class="fas fa-calendar-alt text-blue-500 text-sm"></i>
+                    <span>Statistik Penggunaan</span>
+                </h4>
+                <div class="flex bg-slate-100 p-1 rounded-xl self-stretch sm:self-auto" id="period-container">
+                    <button data-period="harian" class="btn-period flex-1 sm:flex-initial px-3 py-1.5 rounded-lg text-[10px] font-black uppercase transition-all duration-200 bg-white text-blue-600 shadow-sm">harian</button>
+                    <button data-period="mingguan" class="btn-period flex-1 sm:flex-initial px-3 py-1.5 rounded-lg text-[10px] font-black uppercase transition-all duration-200 text-slate-400 hover:text-slate-600">mingguan</button>
+                    <button data-period="bulanan" class="btn-period flex-1 sm:flex-initial px-3 py-1.5 rounded-lg text-[10px] font-black uppercase transition-all duration-200 text-slate-400 hover:text-slate-600">bulanan</button>
+                    <button data-period="tahunan" class="btn-period flex-1 sm:flex-initial px-3 py-1.5 rounded-lg text-[10px] font-black uppercase transition-all duration-200 text-slate-400 hover:text-slate-600">tahunan</button>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- Nisbah Card -->
+                <div class="lg:col-span-1 bg-white p-6 rounded-3xl shadow-sm border border-slate-100 flex flex-col items-center justify-center min-h-[300px]">
+                    <h5 class="text-xs font-black text-slate-400 uppercase tracking-widest mb-4">Nisbah Peralatan</h5>
+                    
+                    <!-- Tiada Data -->
+                    <div id="chart-no-data" class="text-center py-10 text-slate-400 text-sm block">
+                        <i class="fas fa-chart-pie text-3xl mx-auto opacity-30 mb-2"></i>
+                        <span>Tiada data untuk tempoh ini</span>
+                    </div>
+                    
+                    <!-- Ada Data -->
+                    <div id="chart-has-data" class="w-full h-48 relative flex items-center justify-center hidden">
+                        <div class="chart-container">
+                            <canvas id="canvas-ratio"></canvas>
+                        </div>
+                        <div class="absolute flex flex-col items-center justify-center">
+                            <span id="text-total-sessions" class="text-2xl font-black text-slate-800">0</span>
+                            <span class="text-[9px] font-black uppercase text-slate-400 tracking-wider">Sesi</span>
+                        </div>
+                    </div>
+
+                    <div class="flex space-x-6 mt-4 text-xs font-bold text-slate-600">
+                        <div class="flex items-center space-x-2">
+                            <span class="w-3 h-3 rounded-full bg-[#FF1493]"></span>
+                            <span id="label-laptop-count">Laptop (0)</span>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <span class="w-3 h-3 rounded-full bg-[#FFD700]"></span>
+                            <span id="label-accessory-count">Aksesori (0)</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Kategori Card -->
+                <div class="lg:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="bg-gradient-to-br from-[#FF1493] to-[#C71585] p-6 rounded-3xl text-white shadow-lg shadow-pink-100/50 flex items-center justify-between transition-all hover:scale-[1.02]">
+                        <div>
+                            <p class="text-xs font-bold uppercase opacity-80 tracking-widest">Laptop</p>
+                            <h3 id="card-laptop-count" class="text-5xl font-black mt-2">0</h3>
+                            <p id="card-laptop-desc" class="text-[10px] mt-1 opacity-70">Unit direkodkan (harian)</p>
+                        </div>
+                        <i class="fas fa-laptop text-6xl opacity-20"></i>
+                    </div>
+                    <div class="bg-gradient-to-br from-[#FFD700] to-[#DAA520] p-6 rounded-3xl text-slate-800 shadow-lg shadow-yellow-100/50 flex items-center justify-between transition-all hover:scale-[1.02]">
+                        <div>
+                            <p class="text-xs font-bold uppercase opacity-70 tracking-widest">Aksesori</p>
+                            <h3 id="card-accessory-count" class="text-5xl font-black mt-2">0</h3>
+                            <p id="card-accessory-desc" class="text-[10px] mt-1 opacity-60">Unit direkodkan (harian)</p>
+                        </div>
+                        <i class="fas fa-plug text-6xl opacity-20 text-slate-800"></i>
+                    </div>
+                    <div class="md:col-span-2 bg-white p-6 rounded-3xl border border-slate-100 flex items-center space-x-6">
+                        <div class="w-14 h-14 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center text-2xl">
+                            <i class="fas fa-history"></i>
+                        </div>
+                        <div>
+                            <p class="text-slate-400 text-[10px] font-bold uppercase tracking-widest">Aktiviti Terakhir</p>
+                            <h4 id="text-last-activity" class="font-bold text-slate-700 mt-0.5">
+                                Tiada rekod lagi.
+                            </h4>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Senarai Rekod -->
+            <div class="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden">
+                <div class="px-6 py-5 border-b border-slate-50 flex justify-between items-center bg-slate-50/50">
+                    <h3 class="font-bold text-slate-800 uppercase text-xs tracking-widest">Senarai 5 Rekod Terkini</h3>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-sm">
+                        <thead class="bg-slate-50 text-slate-400 uppercase text-[10px] font-black">
+                            <tr>
+                                <th class="px-6 py-4">Nama</th>
+                                <th class="px-6 py-4">Peralatan</th>
+                                <th class="px-6 py-4">Tarikh & Masa</th>
+                                <th class="px-6 py-4">Tujuan</th>
+                            </tr>
+                        </thead>
+                        <tbody id="table-records-body" class="divide-y divide-slate-50">
+                            <!-- Records list rendered by JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Navigasi Mobile Bar (Bawah) -->
+    <nav class="md:hidden fixed bottom-6 left-1/2 -translate-x-1/2 w-[85%] max-w-xs bg-white/95 backdrop-blur-md border border-slate-200 shadow-2xl rounded-3xl flex justify-around p-1.5 z-50">
+        <button id="nav-form-mobile" class="flex-1 flex flex-col items-center justify-center py-2.5 rounded-2xl transition-all duration-200 bg-blue-600 text-white shadow-lg shadow-blue-100">
+            <i class="fas fa-plus-circle text-lg mb-1"></i>
+            <span class="text-[9px] font-black uppercase tracking-wider">Tambah</span>
+        </button>
+        <button id="nav-dash-mobile" class="flex-1 flex flex-col items-center justify-center py-2.5 rounded-2xl transition-all duration-200 text-slate-400 hover:text-slate-600">
+            <i class="fas fa-chart-pie text-lg mb-1"></i>
+            <span class="text-[9px] font-black uppercase tracking-wider">Statistik</span>
+        </button>
+    </nav>
+
+    <!-- Toast Notification -->
+    <div id="success-toast" class="fixed top-5 right-5 z-50 hidden transition-all duration-300">
+        <div class="bg-white border-l-4 border-emerald-500 shadow-2xl rounded-2xl p-5 flex items-start space-x-4 max-w-sm border border-slate-100">
+            <div class="bg-emerald-50 p-2.5 rounded-full text-emerald-600">
+                <i class="fas fa-check text-lg"></i>
+            </div>
+            <div class="flex-1">
+                <h4 class="font-bold text-slate-800 text-sm">Berjaya!</h4>
+                <p class="text-xs text-slate-500 mt-0.5 leading-relaxed">
+                    Data berjaya disimpan. Selamat menggunakan peralatan ICT dengan berhemah.
+                </p>
+            </div>
+            <button id="btn-close-toast" class="text-slate-400 hover:text-slate-600 p-1 hover:bg-slate-50 rounded-lg transition-colors">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- Logik Javascript Standalone (Vanilla JS) -->
+    <script>
+        // --- KONSTANTE & STATE ---
+        const STORAGE_KEY = 'sjkc_chichih_ict_records';
+        const GAS_URL = 'https://script.google.com/macros/s/AKfycbyn_SLD1stVo1azcb_7Od6MjrylZw8XOo0Mm11xNstR2zizL82jT60jd42VLhMZeSK5/exec';
+
+        let state = {
+            tab: 'form',
+            period: 'harian',
+            records: [],
+            formData: {
+                status: 'Guru',
+                userName: '',
+                equipmentTypes: [], // Can contain 'Komputer Riba' and/or 'Aksesori'
+                equipmentNo: '1',
+                borrowDate: '',
+                startTime: '',
+                endTime: '',
+                purpose: ''
+            }
+        };
+
+        let chartInstance = null;
+
+        // --- UTILITIES ---
+        function getRecords() {
+            try {
+                const data = localStorage.getItem(STORAGE_KEY);
+                return data ? JSON.parse(data) : [];
+            } catch (e) {
+                console.error('Ralat membaca data:', e);
+                return [];
+            }
+        }
+
+        async function saveRecord(record) {
+            try {
+                state.records = [record, ...state.records];
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(state.records));
+                
+                // Backup ke Google Apps Script secara asynchronous (no-cors)
+                try {
+                    await fetch(GAS_URL, {
+                        method: 'POST',
+                        mode: 'no-cors',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(record)
+                    });
+                } catch (e) {
+                    console.error('Ralat GAS:', e);
+                }
+                return true;
+            } catch (e) {
+                console.error('Ralat menyimpan rekod:', e);
+                return false;
+            }
+        }
+
+        // --- NAVIGATION ACTIONS ---
+        function switchTab(newTab) {
+            state.tab = newTab;
+            
+            const tabForm = document.getElementById('tab-form');
+            const tabDashboard = document.getElementById('tab-dashboard');
+            
+            const navFormDesktop = document.getElementById('nav-form-desktop');
+            const navDashDesktop = document.getElementById('nav-dash-desktop');
+            const navFormMobile = document.getElementById('nav-form-mobile');
+            const navDashMobile = document.getElementById('nav-dash-mobile');
+            
+            if (newTab === 'form') {
+                tabForm.classList.remove('hidden');
+                tabForm.classList.add('block');
+                tabDashboard.classList.add('hidden');
+                tabDashboard.classList.remove('block');
+                
+                // Desktop styling
+                navFormDesktop.className = "px-5 py-2 rounded-xl font-black text-xs uppercase tracking-widest transition-all duration-200 bg-white text-blue-600 shadow-sm";
+                navDashDesktop.className = "px-5 py-2 rounded-xl font-black text-xs uppercase tracking-widest transition-all duration-200 text-slate-400 hover:text-slate-600";
+                
+                // Mobile styling
+                navFormMobile.className = "flex-1 flex flex-col items-center justify-center py-2.5 rounded-2xl transition-all duration-200 bg-blue-600 text-white shadow-lg shadow-blue-100";
+                navDashMobile.className = "flex-1 flex flex-col items-center justify-center py-2.5 rounded-2xl transition-all duration-200 text-slate-400 hover:text-slate-600";
+            } else {
+                tabForm.classList.add('hidden');
+                tabForm.classList.remove('block');
+                tabDashboard.classList.remove('hidden');
+                tabDashboard.classList.add('block');
+                
+                // Desktop styling
+                navFormDesktop.className = "px-5 py-2 rounded-xl font-black text-xs uppercase tracking-widest transition-all duration-200 text-slate-400 hover:text-slate-600";
+                navDashDesktop.className = "px-5 py-2 rounded-xl font-black text-xs uppercase tracking-widest transition-all duration-200 bg-white text-blue-600 shadow-sm";
+                
+                // Mobile styling
+                navFormMobile.className = "flex-1 flex flex-col items-center justify-center py-2.5 rounded-2xl transition-all duration-200 text-slate-400 hover:text-slate-600";
+                navDashMobile.className = "flex-1 flex flex-col items-center justify-center py-2.5 rounded-2xl transition-all duration-200 bg-blue-600 text-white shadow-lg shadow-blue-100";
+                
+                renderDashboard();
+            }
+        }
+
+        function toggleEquipmentType(type) {
+            const index = state.formData.equipmentTypes.indexOf(type);
+            if (index > -1) {
+                state.formData.equipmentTypes.splice(index, 1);
+            } else {
+                state.formData.equipmentTypes.push(type);
+            }
+            updateEquipmentUI();
+        }
+
+        function setEquipmentNo(no) {
+            state.formData.equipmentNo = no;
+            updateEquipmentNoUI();
+        }
+
+        function setPeriod(period) {
+            state.period = period;
+            
+            document.querySelectorAll('.btn-period').forEach(btn => {
+                const btnPeriod = btn.getAttribute('data-period');
+                if (btnPeriod === period) {
+                    btn.className = "btn-period flex-1 sm:flex-initial px-3 py-1.5 rounded-lg text-[10px] font-black uppercase transition-all duration-200 bg-white text-blue-600 shadow-sm";
+                } else {
+                    btn.className = "btn-period flex-1 sm:flex-initial px-3 py-1.5 rounded-lg text-[10px] font-black uppercase transition-all duration-200 text-slate-400 hover:text-slate-600";
+                }
+            });
+            
+            renderDashboard();
+        }
+
+        // --- UI UPDATERS ---
+        function initFormDefaults() {
+            const now = new Date();
+            const dateStr = now.toISOString().split('T')[0];
+            document.getElementById('input-date').value = dateStr;
+            state.formData.borrowDate = dateStr;
+            
+            const h = String(now.getHours()).padStart(2, '0');
+            const m = String(now.getMinutes()).padStart(2, '0');
+            
+            document.getElementById('input-starttime').value = `${h}:${m}`;
+            state.formData.startTime = `${h}:${m}`;
+            
+            document.getElementById('input-username').value = '';
+            document.getElementById('input-purpose').value = '';
+            state.formData.userName = '';
+            state.formData.purpose = '';
+            state.formData.status = 'Guru';
+            document.getElementById('input-status').value = 'Guru';
+            
+            state.formData.equipmentTypes = [];
+            state.formData.equipmentNo = '1';
+            
+            updateEquipmentUI();
+            updateEquipmentNoUI();
+        }
+
+        function updateEquipmentUI() {
+            const btnLaptop = document.getElementById('btn-equip-laptop');
+            const btnAccessory = document.getElementById('btn-equip-accessory');
+            
+            if (state.formData.equipmentTypes.includes('Komputer Riba')) {
+                btnLaptop.className = "p-6 border-2 rounded-3xl transition-all duration-200 flex flex-col items-center space-y-2 border-blue-600 bg-blue-50 text-blue-700 shadow-md shadow-blue-50";
+            } else {
+                btnLaptop.className = "p-6 border-2 rounded-3xl transition-all duration-200 flex flex-col items-center space-y-2 border-slate-100 bg-slate-50 text-slate-400 hover:border-slate-200";
+            }
+            
+            if (state.formData.equipmentTypes.includes('Aksesori')) {
+                btnAccessory.className = "p-6 border-2 rounded-3xl transition-all duration-200 flex flex-col items-center space-y-2 border-blue-600 bg-blue-50 text-blue-700 shadow-md shadow-blue-50";
+            } else {
+                btnAccessory.className = "p-6 border-2 rounded-3xl transition-all duration-200 flex flex-col items-center space-y-2 border-slate-100 bg-slate-50 text-slate-400 hover:border-slate-200";
+            }
+        }
+
+        function updateEquipmentNoUI() {
+            document.querySelectorAll('.btn-no').forEach(btn => {
+                const val = btn.getAttribute('data-val');
+                if (state.formData.equipmentNo === val) {
+                    btn.className = "btn-no w-12 h-12 rounded-2xl font-black transition-all border-2 flex items-center justify-center bg-blue-600 text-white border-blue-600 shadow-lg shadow-blue-100";
+                } else {
+                    btn.className = "btn-no w-12 h-12 rounded-2xl font-black transition-all border-2 flex items-center justify-center bg-white text-slate-400 border-slate-100 hover:border-slate-200";
+                }
+            });
+        }
+
+        function showToast() {
+            const toast = document.getElementById('success-toast');
+            toast.classList.remove('hidden');
+            toast.classList.add('flex', 'animate-bounce');
+            
+            setTimeout(() => {
+                closeToast();
+            }, 5000);
+        }
+
+        function closeToast() {
+            const toast = document.getElementById('success-toast');
+            toast.classList.add('hidden');
+            toast.classList.remove('flex', 'animate-bounce');
+        }
+
+        // --- DASHBOARD RENDERING ---
+        function renderDashboard() {
+            const records = state.records;
+            const period = state.period;
+            const now = new Date();
+            const todayStr = now.toISOString().split('T')[0];
+            
+            const filtered = records.filter(r => {
+                const d = new Date(r.borrowDate);
+                if (period === 'harian') {
+                    return r.borrowDate === todayStr;
+                }
+                if (period === 'mingguan') {
+                    const diffTime = Math.abs(now.getTime() - d.getTime());
+                    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                    return diffDays <= 7;
+                }
+                if (period === 'bulanan') {
+                    return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+                }
+                // tahunan
+                return d.getFullYear() === now.getFullYear();
+            });
+            
+            const laptopCount = filtered.filter(r => r.equipmentTypes.includes('Komputer Riba')).length;
+            const accessCount = filtered.filter(r => r.equipmentTypes.includes('Aksesori')).length;
+            const totalCount = laptopCount + accessCount;
+            const hasData = totalCount > 0;
+            
+            const chartNoData = document.getElementById('chart-no-data');
+            const chartHasData = document.getElementById('chart-has-data');
+            
+            if (hasData) {
+                chartNoData.classList.add('hidden');
+                chartHasData.classList.remove('hidden');
+                
+                document.getElementById('text-total-sessions').textContent = totalCount;
+                
+                if (chartInstance) {
+                    chartInstance.destroy();
+                }
+                
+                const ctx = document.getElementById('canvas-ratio').getContext('2d');
+                chartInstance = new Chart(ctx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Laptop', 'Aksesori'],
+                        datasets: [{
+                            data: [laptopCount, accessCount],
+                            backgroundColor: ['#FF1493', '#FFD700'],
+                            hoverBackgroundColor: ['#FF69B4', '#FFFF00'],
+                            borderColor: '#ffffff',
+                            borderWidth: 4,
+                            borderRadius: 10,
+                            spacing: 3
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        cutout: '70%',
+                        plugins: {
+                            legend: {
+                                display: false
+                            }
+                        }
+                    }
+                });
+            } else {
+                chartNoData.classList.remove('hidden');
+                chartHasData.classList.add('hidden');
+                if (chartInstance) {
+                    chartInstance.destroy();
+                    chartInstance = null;
+                }
+            }
+            
+            document.getElementById('label-laptop-count').textContent = `Laptop (${laptopCount})`;
+            document.getElementById('label-accessory-count').textContent = `Aksesori (${accessCount})`;
+            
+            document.getElementById('card-laptop-count').textContent = laptopCount;
+            document.getElementById('card-laptop-desc').textContent = `Unit direkodkan (${period})`;
+            
+            document.getElementById('card-accessory-count').textContent = accessCount;
+            document.getElementById('card-accessory-desc').textContent = `Unit direkodkan (${period})`;
+            
+            const textLastActivity = document.getElementById('text-last-activity');
+            if (records.length > 0) {
+                textLastActivity.textContent = `Rekod terakhir oleh ${records[0].userName}`;
+            } else {
+                textLastActivity.textContent = 'Tiada rekod lagi.';
+            }
+            
+            const tbody = document.getElementById('table-records-body');
+            tbody.innerHTML = '';
+            
+            const recent5 = records.slice(0, 5);
+            if (recent5.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="4" class="px-6 py-10 text-center text-slate-400 font-medium">
+                            Tiada rekod tersimpan buat masa ini.
+                        </td>
+                    </tr>
+                `;
+            } else {
+                recent5.forEach(r => {
+                    const tr = document.createElement('tr');
+                    tr.className = "hover:bg-blue-50/20 transition-colors";
+                    
+                    const equipStr = r.equipmentTypes.join(', ');
+                    
+                    tr.innerHTML = `
+                        <td class="px-6 py-4">
+                            <div class="font-bold text-slate-700">${escapeHtml(r.userName)}</div>
+                            <span class="inline-block mt-1 px-2.5 py-0.5 bg-blue-50 text-[10px] text-blue-600 font-bold rounded-full uppercase">
+                                ${escapeHtml(r.status)}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 text-slate-500 font-medium">
+                            <div>${escapeHtml(equipStr)}</div>
+                            <span class="text-[10px] text-slate-400 font-bold uppercase">
+                                #${escapeHtml(r.equipmentNo)}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 text-slate-500">
+                            <div class="font-semibold text-slate-600">${escapeHtml(r.borrowDate)}</div>
+                            <span class="text-[10px] text-slate-400 font-medium">
+                                ${escapeHtml(r.startTime)} - ${escapeHtml(r.endTime)}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 text-slate-500 italic max-w-xs truncate">
+                            "${escapeHtml(r.purpose)}"
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            }
+        }
+
+        function escapeHtml(str) {
+            if (!str) return '';
+            return str.replace(/&/g, "&amp;")
+                      .replace(/</g, "&lt;")
+                      .replace(/>/g, "&gt;")
+                      .replace(/"/g, "&quot;")
+                      .replace(/'/g, "&#039;");
+        }
+
+        // --- INITIALIZATION & EVENT LISTENERS ---
+        function initApp() {
+            state.records = getRecords();
+            
+            // Header & Navigation Clicks
+            document.getElementById('btn-header-logo').addEventListener('click', () => switchTab('form'));
+            document.getElementById('nav-form-desktop').addEventListener('click', () => switchTab('form'));
+            document.getElementById('nav-dash-desktop').addEventListener('click', () => switchTab('dashboard'));
+            document.getElementById('nav-form-mobile').addEventListener('click', () => switchTab('form'));
+            document.getElementById('nav-dash-mobile').addEventListener('click', () => switchTab('dashboard'));
+            
+            // Form Field Changes
+            document.getElementById('input-status').addEventListener('change', (e) => {
+                state.formData.status = e.target.value;
+            });
+            document.getElementById('input-username').addEventListener('input', (e) => {
+                state.formData.userName = e.target.value;
+            });
+            document.getElementById('input-date').addEventListener('change', (e) => {
+                state.formData.borrowDate = e.target.value;
+            });
+            document.getElementById('input-starttime').addEventListener('change', (e) => {
+                state.formData.startTime = e.target.value;
+            });
+            document.getElementById('input-purpose').addEventListener('input', (e) => {
+                state.formData.purpose = e.target.value;
+            });
+            
+            // Equipment Button Toggles
+            document.getElementById('btn-equip-laptop').addEventListener('click', () => toggleEquipmentType('Komputer Riba'));
+            document.getElementById('btn-equip-accessory').addEventListener('click', () => toggleEquipmentType('Aksesori'));
+            
+            // Equipment No Selection
+            document.querySelectorAll('.btn-no').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    setEquipmentNo(btn.getAttribute('data-val'));
+                });
+            });
+            
+            // Period Filtering Selection
+            document.querySelectorAll('.btn-period').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    setPeriod(btn.getAttribute('data-period'));
+                });
+            });
+            
+            // Toast Manual Close
+            document.getElementById('btn-close-toast').addEventListener('click', closeToast);
+            
+            // Form submission logic
+            const form = document.getElementById('ict-form');
+            form.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                
+                if (!state.formData.userName.trim()) {
+                    alert('Sila masukkan nama penuh!');
+                    return;
+                }
+                if (state.formData.equipmentTypes.length === 0) {
+                    alert('Sila pilih sekurang-kurangnya satu jenis peralatan!');
+                    return;
+                }
+                if (!state.formData.purpose.trim()) {
+                    alert('Sila masukkan tujuan penggunaan!');
+                    return;
+                }
+                
+                const btnSubmit = document.getElementById('btn-submit');
+                const iconSubmit = document.getElementById('icon-submit');
+                const iconSpinner = document.getElementById('icon-spinner');
+                const textSubmit = document.getElementById('text-submit');
+                
+                // Show loading spinner
+                btnSubmit.disabled = true;
+                iconSubmit.classList.add('hidden');
+                iconSpinner.classList.remove('hidden');
+                textSubmit.textContent = "Menghantar...";
+                
+                const completeRecord = {
+                    id: Math.random().toString(36).substring(2, 11),
+                    status: state.formData.status,
+                    userName: state.formData.userName.trim(),
+                    equipmentTypes: [...state.formData.equipmentTypes],
+                    equipmentNo: state.formData.equipmentNo,
+                    borrowDate: state.formData.borrowDate,
+                    returnDate: state.formData.borrowDate,
+                    startTime: state.formData.startTime,
+                    endTime: '',
+                    purpose: state.formData.purpose.trim(),
+                    createdAt: new Date().toISOString()
+                };
+                
+                // Calculate end time as startTime + 1 hour automatically
+                try {
+                    const [h, m] = state.formData.startTime.split(':');
+                    const eh = String((parseInt(h, 10) + 1) % 24).padStart(2, '0');
+                    completeRecord.endTime = `${eh}:${m}`;
+                } catch (e) {
+                    completeRecord.endTime = state.formData.startTime;
+                }
+                
+                const saved = await saveRecord(completeRecord);
+                
+                // Restore submit button state
+                btnSubmit.disabled = false;
+                iconSubmit.classList.remove('hidden');
+                iconSpinner.classList.add('hidden');
+                textSubmit.textContent = "Hantar Rekod";
+                
+                if (saved) {
+                    showToast();
+                    initFormDefaults();
+                    switchTab('dashboard');
+                }
+            });
+            
+            // Initializing defaults
+            initFormDefaults();
+        }
+
+        // Jalankan inisialisasi dengan selamat, sama ada DOM masih memuat atau sudah sedia
+        if (document.readyState === 'loading') {
+            window.addEventListener('DOMContentLoaded', initApp);
+        } else {
+            initApp();
+        }
+    </script>
+</body>
+</html>
