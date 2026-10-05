@@ -1,122 +1,821 @@
-
 <!DOCTYPE html>
 <html lang="ms">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>REKOD ICT - SJKC Chi Chih</title>
+    
     <!-- Library Luaran (CDN) -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     
     <style>
-        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; }
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background-color: #f8fafc; 
+        }
         input[type="date"]::-webkit-calendar-picker-indicator,
-        input[type="time"]::-webkit-calendar-picker-indicator { cursor: pointer; filter: invert(0.5); }
-        .chart-container { position: relative; margin: auto; height: 260px; width: 100%; }
-        .fade-in { animation: fadeIn 0.4s ease-out; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        .glass-card { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); }
+        input[type="time"]::-webkit-calendar-picker-indicator { 
+            cursor: pointer; 
+            filter: invert(0.5); 
+        }
+        .chart-container { 
+            position: relative; 
+            margin: auto; 
+            height: 200px; 
+            width: 100%; 
+        }
+        .fade-in { 
+            animation: fadeIn 0.4s ease-out; 
+        }
+        @keyframes fadeIn { 
+            from { opacity: 0; transform: translateY(10px); } 
+            to { opacity: 1; transform: translateY(0); } 
+        }
     </style>
-<link rel="stylesheet" href="/index.css">
 </head>
-<body>
-    <div id="root"></div>
+<body class="bg-slate-50 min-h-screen pb-24 md:pb-12 text-slate-800">
 
-    <script type="text/babel">
-        const { useState, useEffect, useCallback, useRef } = React;
+    <!-- Header -->
+    <header class="bg-white/80 backdrop-blur-md border-b border-slate-100 sticky top-0 z-40 p-4">
+        <div class="max-w-5xl mx-auto flex items-center justify-between">
+            <div id="btn-header-logo" class="flex items-center space-x-4 cursor-pointer select-none">
+                <img 
+                    src="https://i.postimg.cc/Xv6nTH13/Untitled-design-(2).png" 
+                    class="h-12 md:h-14 drop-shadow-sm transition-transform hover:scale-105 duration-200"
+                    alt="Logo SJKC Chi Chih" 
+                />
+                <div>
+                    <h1 class="text-xs md:text-base font-black uppercase text-slate-800 leading-none tracking-wide">
+                        REKOD PINJAMAN PERALATAN ICT
+                    </h1>
+                    <p class="text-[10px] md:text-xs text-blue-600 font-bold uppercase tracking-widest mt-1">
+                        SJKC CHI CHIH
+                    </p>
+                </div>
+            </div>
 
-        // --- KONFIGURASI & KONSTAN ---
-        const UserStatus = { GURU: 'Guru', MURID: 'Murid' };
-        const EquipmentType = { LAPTOP: 'Komputer Riba', ACCESSORIES: 'Aksesori' };
+            <!-- Navigasi Desktop -->
+            <div class="hidden md:flex bg-slate-100 p-1 rounded-2xl space-x-1">
+                <button id="nav-form-desktop" class="px-5 py-2 rounded-xl font-black text-xs uppercase tracking-widest transition-all duration-200 bg-white text-blue-600 shadow-sm">
+                    Rekod Baru
+                </button>
+                <button id="nav-dash-desktop" class="px-5 py-2 rounded-xl font-black text-xs uppercase tracking-widest transition-all duration-200 text-slate-400 hover:text-slate-600">
+                    Dashboard
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Konten Utama -->
+    <main class="max-w-5xl mx-auto p-4 md:p-8">
+        
+        <!-- Tab 1: Borang Pinjaman -->
+        <div id="tab-form" class="max-w-2xl mx-auto block fade-in">
+            <div class="bg-white rounded-3xl shadow-xl overflow-hidden border border-slate-100">
+                <div class="bg-gradient-to-r from-blue-600 to-indigo-600 p-8 md:p-10 text-white text-center">
+                    <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-white/10 mb-4 backdrop-blur-sm">
+                        <i class="fas fa-laptop text-2xl text-white"></i>
+                    </div>
+                    <h3 class="text-2xl font-black uppercase tracking-widest">Borang Pendaftaran</h3>
+                    <p class="text-blue-100 text-xs mt-2 font-medium">Sila isi maklumat penggunaan anda secara jujur.</p>
+                </div>
+
+                <form id="ict-form" class="p-6 md:p-10 space-y-8">
+                    <!-- Error notice jika ada -->
+                    <div id="form-error-box" class="hidden bg-rose-50 border border-rose-200 text-rose-700 px-4 py-3 rounded-2xl text-xs font-bold">
+                        <span id="form-error-text"></span>
+                    </div>
+
+                    <!-- Bahagian 1: Profil -->
+                    <div class="space-y-4">
+                        <div class="flex items-center space-x-2 text-blue-600 font-black text-xs uppercase tracking-widest">
+                            <span class="w-6 h-6 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center text-xs font-bold">1</span>
+                            <span>Profil Pengguna</span>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div class="space-y-1.5">
+                                <label class="text-[10px] font-black text-slate-400 uppercase tracking-wider">Status</label>
+                                <select 
+                                    id="input-status"
+                                    class="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-blue-500 focus:bg-white outline-none transition-all font-bold text-slate-700 cursor-pointer"
+                                >
+                                    <option value="Guru">Guru</option>
+                                    <option value="Murid">Murid</option>
+                                </select>
+                            </div>
+                            <div class="space-y-1.5">
+                                <label class="text-[10px] font-black text-slate-400 uppercase tracking-wider">Nama Penuh</label>
+                                <input 
+                                    type="text" 
+                                    id="input-username"
+                                    placeholder="Cth: Ahmad bin Bakar"
+                                    class="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-blue-500 focus:bg-white outline-none transition-all font-bold text-slate-700"
+                                    required 
+                                />
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Bahagian 2: Peralatan -->
+                    <div class="space-y-4">
+                        <div class="flex items-center space-x-2 text-blue-600 font-black text-xs uppercase tracking-widest">
+                            <span class="w-6 h-6 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center text-xs font-bold">2</span>
+                            <span>Peralatan</span>
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <button 
+                                type="button"
+                                id="btn-equip-laptop"
+                                class="p-6 border-2 rounded-3xl transition-all duration-200 flex flex-col items-center space-y-2 border-slate-100 bg-slate-50 text-slate-400 hover:border-slate-200"
+                            >
+                                <i class="fas fa-laptop text-2xl"></i>
+                                <span class="font-black text-xs uppercase tracking-wide">Laptop</span>
+                            </button>
+                            <button 
+                                type="button"
+                                id="btn-equip-accessory"
+                                class="p-6 border-2 rounded-3xl transition-all duration-200 flex flex-col items-center space-y-2 border-slate-100 bg-slate-50 text-slate-400 hover:border-slate-200"
+                            >
+                                <i class="fas fa-plug text-2xl"></i>
+                                <span class="font-black text-xs uppercase tracking-wide">Aksesori</span>
+                            </button>
+                        </div>
+
+                        <div class="space-y-2">
+                            <label class="text-[10px] font-black text-slate-400 uppercase tracking-wider">No. Peralatan</label>
+                            <div class="flex flex-wrap gap-2" id="equip-no-container">
+                                <button type="button" data-val="1" class="btn-no w-12 h-12 rounded-2xl font-black transition-all border-2 flex items-center justify-center bg-blue-600 text-white border-blue-600 shadow-lg shadow-blue-100">1</button>
+                                <button type="button" data-val="2" class="btn-no w-12 h-12 rounded-2xl font-black transition-all border-2 flex items-center justify-center bg-white text-slate-400 border-slate-100 hover:border-slate-200">2</button>
+                                <button type="button" data-val="3" class="btn-no w-12 h-12 rounded-2xl font-black transition-all border-2 flex items-center justify-center bg-white text-slate-400 border-slate-100 hover:border-slate-200">3</button>
+                                <button type="button" data-val="4" class="btn-no w-12 h-12 rounded-2xl font-black transition-all border-2 flex items-center justify-center bg-white text-slate-400 border-slate-100 hover:border-slate-200">4</button>
+                                <button type="button" data-val="5" class="btn-no w-12 h-12 rounded-2xl font-black transition-all border-2 flex items-center justify-center bg-white text-slate-400 border-slate-100 hover:border-slate-200">5</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Bahagian 3: Masa -->
+                    <div class="space-y-4">
+                        <div class="flex items-center space-x-2 text-blue-600 font-black text-xs uppercase tracking-widest">
+                            <span class="w-6 h-6 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center text-xs font-bold">3</span>
+                            <span>Masa & Tujuan</span>
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="space-y-1.5">
+                                <label class="text-[10px] font-black text-slate-400 uppercase tracking-wider">Tarikh</label>
+                                <input 
+                                    type="date" 
+                                    id="input-date"
+                                    class="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-blue-500 focus:bg-white outline-none font-bold text-slate-700"
+                                />
+                            </div>
+                            <div class="space-y-1.5">
+                                <label class="text-[10px] font-black text-slate-400 uppercase tracking-wider">Masa Mula</label>
+                                <input 
+                                    type="time" 
+                                    id="input-starttime"
+                                    class="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-blue-500 focus:bg-white outline-none font-bold text-slate-700"
+                                />
+                            </div>
+                        </div>
+                        <div class="space-y-1.5">
+                            <label class="text-[10px] font-black text-slate-400 uppercase tracking-wider">Tujuan Penggunaan</label>
+                            <textarea 
+                                id="input-purpose"
+                                placeholder="Cth: PdP Sains / Latihan Murid"
+                                rows="3"
+                                class="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-blue-500 focus:bg-white outline-none resize-none font-bold text-slate-700"
+                                required
+                            ></textarea>
+                        </div>
+                    </div>
+
+                    <button 
+                        type="submit" 
+                        id="btn-submit"
+                        class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 disabled:from-blue-300 disabled:to-indigo-300 text-white p-5 rounded-3xl font-black uppercase tracking-widest shadow-xl shadow-blue-100 transition-all flex items-center justify-center space-x-3 text-lg"
+                    >
+                        <i class="fas fa-paper-plane" id="icon-submit"></i>
+                        <i class="fas fa-spinner animate-spin hidden" id="icon-spinner"></i>
+                        <span id="text-submit">Hantar Rekod</span>
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Tab 2: Dashboard -->
+        <div id="tab-dashboard" class="space-y-6 hidden fade-in">
+            <!-- Filter Period & Penyegerakan -->
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center bg-white p-4 rounded-2xl shadow-sm border border-slate-100 gap-3">
+                <div class="flex items-center space-x-3">
+                    <div class="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center text-sm font-black">
+                        <i class="fas fa-chart-pie"></i>
+                    </div>
+                    <div>
+                        <h4 class="font-bold text-slate-800 text-xs uppercase tracking-wider">
+                            Statistik Penggunaan ICT
+                        </h4>
+                        <p class="text-[10px] text-slate-400 font-semibold" id="sheet-sync-status">
+                            Disegerakkan daripada Google Spreadsheet SJKC Chi Chih
+                        </p>
+                    </div>
+                </div>
+
+                <div class="flex items-center space-x-2 self-stretch sm:self-auto">
+                    <div class="flex bg-slate-100 p-1 rounded-xl flex-1 sm:flex-initial overflow-x-auto" id="period-container">
+                        <button data-period="harian" class="btn-period flex-1 sm:flex-initial px-3 py-1.5 rounded-lg text-[10px] font-black uppercase transition-all duration-200 text-slate-400 hover:text-slate-600">harian</button>
+                        <button data-period="mingguan" class="btn-period flex-1 sm:flex-initial px-3 py-1.5 rounded-lg text-[10px] font-black uppercase transition-all duration-200 text-slate-400 hover:text-slate-600">mingguan</button>
+                        <button data-period="bulanan" class="btn-period flex-1 sm:flex-initial px-3 py-1.5 rounded-lg text-[10px] font-black uppercase transition-all duration-200 bg-white text-blue-600 shadow-sm">bulanan</button>
+                        <button data-period="tahunan" class="btn-period flex-1 sm:flex-initial px-3 py-1.5 rounded-lg text-[10px] font-black uppercase transition-all duration-200 text-slate-400 hover:text-slate-600">tahunan</button>
+                        <button data-period="keseluruhan" class="btn-period flex-1 sm:flex-initial px-3 py-1.5 rounded-lg text-[10px] font-black uppercase transition-all duration-200 text-slate-400 hover:text-slate-600">semua</button>
+                    </div>
+
+                    <button id="btn-sync-sheets" title="Segerak rekod terkini daripada Google Spreadsheet" class="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl text-xs font-bold transition-all flex items-center space-x-1.5">
+                        <i class="fas fa-sync-alt" id="icon-sync"></i>
+                        <span class="hidden md:inline text-[10px] uppercase font-black">Segerak</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- Nisbah Card -->
+                <div class="lg:col-span-1 bg-white p-6 rounded-3xl shadow-sm border border-slate-100 flex flex-col items-center justify-center min-h-[300px]">
+                    <h5 class="text-xs font-black text-slate-400 uppercase tracking-widest mb-4">Nisbah Peralatan</h5>
+                    
+                    <!-- Tiada Data -->
+                    <div id="chart-no-data" class="text-center py-10 text-slate-400 text-sm hidden">
+                        <i class="fas fa-chart-pie text-3xl mx-auto opacity-30 mb-2"></i>
+                        <span class="block font-bold">Tiada data untuk tempoh ini</span>
+                        <span class="text-[11px] text-slate-400 mt-1 block">Pilih 'Bulanan', 'Tahunan' atau 'Semua'</span>
+                    </div>
+                    
+                    <!-- Ada Data -->
+                    <div id="chart-has-data" class="w-full h-48 relative flex items-center justify-center">
+                        <div class="chart-container">
+                            <canvas id="canvas-ratio"></canvas>
+                        </div>
+                        <div class="absolute flex flex-col items-center justify-center pointer-events-none">
+                            <span id="text-total-sessions" class="text-2xl font-black text-slate-800">0</span>
+                            <span class="text-[9px] font-black uppercase text-slate-400 tracking-wider">Unit / Sesi</span>
+                        </div>
+                    </div>
+
+                    <div class="flex space-x-6 mt-4 text-xs font-bold text-slate-600">
+                        <div class="flex items-center space-x-2">
+                            <span class="w-3 h-3 rounded-full bg-[#FF1493]"></span>
+                            <span id="label-laptop-count">Laptop (0)</span>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <span class="w-3 h-3 rounded-full bg-[#FFD700]"></span>
+                            <span id="label-accessory-count">Aksesori (0)</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Kategori Card -->
+                <div class="lg:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="bg-gradient-to-br from-[#FF1493] to-[#C71585] p-6 rounded-3xl text-white shadow-lg shadow-pink-100/50 flex items-center justify-between transition-all hover:scale-[1.02]">
+                        <div>
+                            <p class="text-xs font-bold uppercase opacity-80 tracking-widest">Laptop</p>
+                            <h3 id="card-laptop-count" class="text-5xl font-black mt-2">0</h3>
+                            <p id="card-laptop-desc" class="text-[10px] mt-1 opacity-70">Unit direkodkan (bulanan)</p>
+                        </div>
+                        <i class="fas fa-laptop text-6xl opacity-20"></i>
+                    </div>
+
+                    <div class="bg-gradient-to-br from-[#FFD700] to-[#DAA520] p-6 rounded-3xl text-slate-800 shadow-lg shadow-yellow-100/50 flex items-center justify-between transition-all hover:scale-[1.02]">
+                        <div>
+                            <p class="text-xs font-bold uppercase opacity-70 tracking-widest">Aksesori</p>
+                            <h3 id="card-accessory-count" class="text-5xl font-black mt-2">0</h3>
+                            <p id="card-accessory-desc" class="text-[10px] mt-1 opacity-60">Unit direkodkan (bulanan)</p>
+                        </div>
+                        <i class="fas fa-plug text-6xl opacity-20 text-slate-800"></i>
+                    </div>
+
+                    <!-- Kad Pengguna Guru vs Murid -->
+                    <div class="bg-white p-5 rounded-3xl border border-slate-100 flex items-center justify-between">
+                        <div class="flex items-center space-x-4">
+                            <div class="w-12 h-12 bg-indigo-50 text-indigo-600 rounded-2xl flex items-center justify-center text-xl">
+                                <i class="fas fa-users"></i>
+                            </div>
+                            <div>
+                                <p class="text-slate-400 text-[10px] font-bold uppercase tracking-widest">Status Pengguna</p>
+                                <div class="flex items-center space-x-3 mt-1">
+                                    <span class="text-xs font-bold text-slate-700">
+                                        <span id="stat-guru-count" class="text-indigo-600 font-black">0</span> Guru
+                                    </span>
+                                    <span class="text-slate-300">•</span>
+                                    <span class="text-xs font-bold text-slate-700">
+                                        <span id="stat-murid-count" class="text-emerald-600 font-black">0</span> Murid
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                        <span id="stat-period-badge" class="text-[11px] font-black px-2.5 py-1 bg-slate-100 text-slate-600 rounded-lg">
+                            0 rekod
+                        </span>
+                    </div>
+
+                    <!-- Kad Tujuan Utama -->
+                    <div class="bg-white p-5 rounded-3xl border border-slate-100 flex items-center space-x-4">
+                        <div class="w-12 h-12 bg-amber-50 text-amber-600 rounded-2xl flex items-center justify-center text-xl">
+                            <i class="fas fa-bullseye"></i>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <p class="text-slate-400 text-[10px] font-bold uppercase tracking-widest">Tujuan Utama</p>
+                            <div id="stat-top-purposes" class="flex flex-wrap gap-1.5 mt-1">
+                                <span class="text-xs text-slate-400 italic">Tiada rekod</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Kad Aktiviti Terakhir -->
+                    <div class="md:col-span-2 bg-white p-6 rounded-3xl border border-slate-100 flex items-center space-x-6">
+                        <div class="w-14 h-14 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center text-2xl flex-shrink-0">
+                            <i class="fas fa-history"></i>
+                        </div>
+                        <div class="min-w-0 flex-1">
+                            <p class="text-slate-400 text-[10px] font-bold uppercase tracking-widest">Aktiviti Terakhir</p>
+                            <h4 id="text-last-activity" class="font-bold text-slate-700 mt-0.5 truncate">
+                                Tiada rekod lagi.
+                            </h4>
+                            <p id="text-last-activity-sub" class="text-[10px] text-slate-400 mt-0.5"></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Senarai Rekod dari Spreadsheet -->
+            <div class="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden">
+                <div class="px-6 py-5 border-b border-slate-50 flex flex-col sm:flex-row justify-between items-start sm:items-center bg-slate-50/50 gap-3">
+                    <div>
+                        <h3 class="font-bold text-slate-800 uppercase text-xs tracking-widest">
+                            Senarai Rekod Spreadsheet SJKC Chi Chih
+                        </h3>
+                        <p id="text-table-summary" class="text-[10px] text-slate-400 font-semibold mt-0.5">
+                            Memaparkan rekod terkini
+                        </p>
+                    </div>
+
+                    <div class="flex flex-wrap items-center gap-2 w-full sm:w-auto">
+                        <div class="relative flex-1 sm:flex-initial">
+                            <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-slate-300 text-xs"></i>
+                            <input 
+                                type="text" 
+                                id="table-search-input"
+                                placeholder="Cari nama / tujuan..."
+                                class="pl-8 pr-3 py-1.5 text-xs bg-white border border-slate-200 rounded-xl outline-none focus:ring-1 focus:ring-blue-500 w-full sm:w-44 text-slate-700 font-semibold"
+                            />
+                        </div>
+
+                        <select id="table-status-select" class="py-1.5 px-2.5 text-xs bg-white border border-slate-200 rounded-xl outline-none text-slate-700 font-bold cursor-pointer">
+                            <option value="semua">Semua Status</option>
+                            <option value="Guru">Guru</option>
+                            <option value="Murid">Murid</option>
+                        </select>
+
+                        <select id="table-pagesize-select" class="py-1.5 px-2.5 text-xs bg-white border border-slate-200 rounded-xl outline-none text-slate-700 font-bold cursor-pointer">
+                            <option value="5">5 rekod</option>
+                            <option value="10">10 rekod</option>
+                            <option value="25">25 rekod</option>
+                            <option value="0">Semua</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-sm">
+                        <thead class="bg-slate-50 text-slate-400 uppercase text-[10px] font-black">
+                            <tr>
+                                <th class="px-6 py-4">Nama</th>
+                                <th class="px-6 py-4">Peralatan</th>
+                                <th class="px-6 py-4">Tarikh & Masa</th>
+                                <th class="px-6 py-4">Tujuan</th>
+                            </tr>
+                        </thead>
+                        <tbody id="table-records-body" class="divide-y divide-slate-50">
+                            <!-- Rekod dijana secara dinamik oleh Javascript -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Navigasi Mobile Bar (Bawah) -->
+    <nav class="md:hidden fixed bottom-6 left-1/2 -translate-x-1/2 w-[85%] max-w-xs bg-white/95 backdrop-blur-md border border-slate-200 shadow-2xl rounded-3xl flex justify-around p-1.5 z-50">
+        <button id="nav-form-mobile" class="flex-1 flex flex-col items-center justify-center py-2.5 rounded-2xl transition-all duration-200 bg-blue-600 text-white shadow-lg shadow-blue-100">
+            <i class="fas fa-plus-circle text-lg mb-1"></i>
+            <span class="text-[9px] font-black uppercase tracking-wider">Tambah</span>
+        </button>
+        <button id="nav-dash-mobile" class="flex-1 flex flex-col items-center justify-center py-2.5 rounded-2xl transition-all duration-200 text-slate-400 hover:text-slate-600">
+            <i class="fas fa-chart-pie text-lg mb-1"></i>
+            <span class="text-[9px] font-black uppercase tracking-wider">Statistik</span>
+        </button>
+    </nav>
+
+    <!-- Toast Notification -->
+    <div id="success-toast" class="fixed top-5 right-5 z-50 hidden transition-all duration-300">
+        <div class="bg-white border-l-4 border-emerald-500 shadow-2xl rounded-2xl p-5 flex items-start space-x-4 max-w-sm border border-slate-100">
+            <div class="bg-emerald-50 p-2.5 rounded-full text-emerald-600">
+                <i class="fas fa-check text-lg"></i>
+            </div>
+            <div class="flex-1">
+                <h4 class="font-bold text-slate-800 text-sm">Berjaya!</h4>
+                <p class="text-xs text-slate-500 mt-0.5 leading-relaxed">
+                    Data berjaya disimpan. Rekod telah diselaraskan dengan Google Spreadsheet.
+                </p>
+            </div>
+            <button id="btn-close-toast" class="text-slate-400 hover:text-slate-600 p-1 hover:bg-slate-50 rounded-lg transition-colors">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- Logik Javascript Standalone (Vanilla JS) -->
+    <script>
+        // Data spreadsheet asal disematkan terus agar boleh dibuka tanpa talian internet (offline)
+        const INITIAL_SPREADSHEET_RECORDS = [{"id":"muadwjojc","status":"Murid","userName":"Ijaz","equipmentTypes":["Komputer Riba","Aksesori"],"equipmentNo":"3","borrowDate":"2026-10-02","returnDate":"2026-10-02","startTime":"8:19","endTime":"9:19","purpose":"pdp","createdAt":"10/2/2026 8:20:38"},{"id":"b7fvqrlu8","status":"Murid","userName":"Diandra","equipmentTypes":["Komputer Riba","Aksesori"],"equipmentNo":"2","borrowDate":"2026-10-02","returnDate":"2026-10-02","startTime":"8:16","endTime":"9:16","purpose":"pdp","createdAt":"10/2/2026 8:17:54"},{"id":"bid3sbqz4","status":"Murid","userName":"Evan Cheng","equipmentTypes":["Komputer Riba","Aksesori"],"equipmentNo":"5","borrowDate":"2026-10-02","returnDate":"2026-10-02","startTime":"8:14","endTime":"9:14","purpose":"PdP","createdAt":"10/2/2026 8:15:45"},{"id":"3sropd7m6","status":"Murid","userName":"Sofea","equipmentTypes":["Komputer Riba","Aksesori"],"equipmentNo":"1","borrowDate":"2026-10-02","returnDate":"2026-10-02","startTime":"8:13","endTime":"9:13","purpose":"Pdp","createdAt":"10/2/2026 8:15:45"},{"id":"gpo4dt4h0","status":"Murid","userName":"alisha","equipmentTypes":["Komputer Riba"],"equipmentNo":"4","borrowDate":"2026-10-02","returnDate":"2026-10-02","startTime":"8:13","endTime":"9:13","purpose":"pdp","createdAt":"10/2/2026 8:16:11"},{"id":"4w08fdov4","status":"Murid","userName":"Sofea","equipmentTypes":["Komputer Riba","Aksesori"],"equipmentNo":"1","borrowDate":"2026-09-21","returnDate":"2026-09-21","startTime":"11:46","endTime":"12:46","purpose":"PdP","createdAt":"9/21/2026 11:47:16"},{"id":"8n9pg0fb0","status":"Murid","userName":"alisha","equipmentTypes":["Komputer Riba","Aksesori"],"equipmentNo":"4","borrowDate":"2026-09-21","returnDate":"2026-09-21","startTime":"11:46","endTime":"12:46","purpose":"pdp","createdAt":"9/21/2026 11:47:16"},{"id":"33sed85gt","status":"Murid","userName":"Ijaz","equipmentTypes":["Komputer Riba"],"equipmentNo":"3","borrowDate":"2026-09-21","returnDate":"2026-09-21","startTime":"11:46","endTime":"12:46","purpose":"AINS","createdAt":"9/21/2026 11:47:39"},{"id":"8mtph5ct7","status":"Murid","userName":"Diandra","equipmentTypes":["Komputer Riba","Aksesori"],"equipmentNo":"2","borrowDate":"2026-09-21","returnDate":"2026-09-21","startTime":"11:46","endTime":"12:46","purpose":"pdp","createdAt":"9/21/2026 11:48:41"},{"id":"ufsn7s0co","status":"Murid","userName":"Evan","equipmentTypes":["Komputer Riba","Aksesori"],"equipmentNo":"5","borrowDate":"2026-09-21","returnDate":"2026-09-21","startTime":"11:28","endTime":"12:28","purpose":"Ains","createdAt":"9/21/2026 11:28:43"},{"id":"couxvh57e","status":"Murid","userName":"Evan","equipmentTypes":["Komputer Riba"],"equipmentNo":"5","borrowDate":"2026-09-17","returnDate":"2026-09-17","startTime":"8:25","endTime":"9:25","purpose":"Ains","createdAt":"9/17/2026 8:25:54"},{"id":"lopt87ghl","status":"Murid","userName":"HASLINA","equipmentTypes":["Komputer Riba"],"equipmentNo":"5","borrowDate":"2026-09-15","returnDate":"2026-09-15","startTime":"11:43","endTime":"12:43","purpose":"PDP","createdAt":"9/15/2026 11:43:11"},{"id":"bjapruyx2","status":"Murid","userName":"NUR AINUN ADLINA BINTI MUHAMMAD AMIRUL AIMAN NG","equipmentTypes":["Komputer Riba"],"equipmentNo":"4","borrowDate":"2026-09-15","returnDate":"2026-09-15","startTime":"11:42","endTime":"12:42","purpose":"PdP","createdAt":"9/15/2026 11:43:00"},{"id":"m86pbsje0","status":"Murid","userName":"Evan Cheng","equipmentTypes":["Komputer Riba"],"equipmentNo":"5","borrowDate":"2026-09-10","returnDate":"2026-09-10","startTime":"8:10","endTime":"9:10","purpose":"Ains Nilam","createdAt":"9/10/2026 8:11:02"},{"id":"yet7vp8kv","status":"Murid","userName":"Nur Diandra bin","equipmentTypes":["Komputer Riba"],"equipmentNo":"2","borrowDate":"2026-09-07","returnDate":"2026-09-07","startTime":"9:41","endTime":"10:41","purpose":"Pdp","createdAt":"9/7/2026 9:43:40"},{"id":"3wt554oyh","status":"Murid","userName":"Ijaz","equipmentTypes":["Komputer Riba"],"equipmentNo":"3","borrowDate":"2026-09-07","returnDate":"2026-09-07","startTime":"9:40","endTime":"10:40","purpose":"ains","createdAt":"9/7/2026 9:42:11"},{"id":"p9f1zk2u5","status":"Murid","userName":"Sofea","equipmentTypes":["Komputer Riba"],"equipmentNo":"1","borrowDate":"2026-09-07","returnDate":"2026-09-07","startTime":"9:40","endTime":"10:40","purpose":"Pdp","createdAt":"9/7/2026 9:42:25"},{"id":"q4jv9ffs3","status":"Murid","userName":"Nur Alisha Binti Abdul Hakim","equipmentTypes":["Komputer Riba","Aksesori"],"equipmentNo":"4","borrowDate":"2026-09-07","returnDate":"2026-09-07","startTime":"9:38","endTime":"10:38","purpose":"PDP","createdAt":"9/7/2026 9:40:04"},{"id":"lg02hb3gb","status":"Murid","userName":"Evan Cheng Yu Ze","equipmentTypes":["Komputer Riba"],"equipmentNo":"5","borrowDate":"2026-09-07","returnDate":"2026-09-07","startTime":"9:37","endTime":"10:37","purpose":"Ains Nilam","createdAt":"9/7/2026 9:37:36"},{"id":"m4ni50vjt","status":"Murid","userName":"NUR AISYAH ELEUNIEY ZAHRAH BINTI MOHD JUNAIDI","equipmentTypes":["Komputer Riba"],"equipmentNo":"2","borrowDate":"2026-08-24","returnDate":"2026-08-24","startTime":"12:30","endTime":"13:30","purpose":"PDP","createdAt":"8/24/2026 12:31:13"},{"id":"6ff7qest5","status":"Murid","userName":"NUR AINUN ADLINA BINTI MUHAMAD AMIRUL AIMAN NB","equipmentTypes":["Komputer Riba"],"equipmentNo":"4","borrowDate":"2026-08-19","returnDate":"2026-08-19","startTime":"9:34","endTime":"10:34","purpose":"QUIZ PANDAI APP","createdAt":"8/19/2026 9:35:34"},{"id":"ufqjinpde","status":"Murid","userName":"NUR AINUN ADLINA BINTI MUHAMMAD AMIRUL AIMAN NG","equipmentTypes":["Komputer Riba","Aksesori"],"equipmentNo":"4","borrowDate":"2026-08-19","returnDate":"2026-08-19","startTime":"12:01","endTime":"13:01","purpose":"PDP","createdAt":"8/19/2026 12:10:59"},{"id":"rfjihft49","status":"Murid","userName":"HASLINA BINTI ZAINI","equipmentTypes":["Komputer Riba","Aksesori"],"equipmentNo":"5","borrowDate":"2026-08-17","returnDate":"2026-08-17","startTime":"11:37","endTime":"12:37","purpose":"PDP","createdAt":"8/17/2026 11:38:16"},{"id":"m6dhn5oq7","status":"Murid","userName":"NUR AINUN ADLINA BINTI MUHAMMAD AMIRUL AIMAN NG","equipmentTypes":["Komputer Riba"],"equipmentNo":"4","borrowDate":"2026-08-16","returnDate":"2026-08-16","startTime":"7:38","endTime":"8:38","purpose":"PdP","createdAt":"8/17/2026 7:39:28"},{"id":"7xz07dozf","status":"Murid","userName":"NUR AISYAH ELEUNIEY ZAHRAH BINTI MOHD JUNAIDI","equipmentTypes":["Komputer Riba"],"equipmentNo":"2","borrowDate":"2026-08-13","returnDate":"2026-08-13","startTime":"11:41","endTime":"12:41","purpose":"PDP","createdAt":"8/13/2026 11:42:49"},{"id":"8oykxxrkh","status":"Murid","userName":"Haslina","equipmentTypes":["Komputer Riba"],"equipmentNo":"5","borrowDate":"2026-08-13","returnDate":"2026-08-13","startTime":"11:39","endTime":"12:39","purpose":"PDP","createdAt":"8/13/2026 11:39:54"},{"id":"z4iwh8xuc","status":"Murid","userName":"NUR AINUN ADLINA BINTI MUHAMMAD AMIRUL AIMAN NG","equipmentTypes":["Komputer Riba"],"equipmentNo":"4","borrowDate":"2026-08-13","returnDate":"2026-08-13","startTime":"11:39","endTime":"12:39","purpose":"PdP","createdAt":"8/13/2026 11:40:02"},{"id":"nz8kf37zj","status":"Murid","userName":"Diandra","equipmentTypes":["Komputer Riba","Aksesori"],"equipmentNo":"2","borrowDate":"2026-08-07","returnDate":"2026-08-07","startTime":"11:28","endTime":"12:28","purpose":"PDP","createdAt":"8/7/2026 11:32:57"},{"id":"2ag4v6s7y","status":"Murid","userName":"Evan Cheng Yu Ze","equipmentTypes":["Komputer Riba","Aksesori"],"equipmentNo":"5","borrowDate":"2026-08-07","returnDate":"2026-08-07","startTime":"11:26","endTime":"12:26","purpose":"PdP","createdAt":"8/7/2026 11:31:19"},{"id":"u914xuiv2","status":"Murid","userName":"Alisha","equipmentTypes":["Komputer Riba","Aksesori"],"equipmentNo":"4","borrowDate":"2026-08-07","returnDate":"2026-08-07","startTime":"11:26","endTime":"12:26","purpose":"PDP","createdAt":"8/7/2026 11:31:22"},{"id":"wp07izmgc","status":"Murid","userName":"Nur Sofeahumaira","equipmentTypes":["Komputer Riba"],"equipmentNo":"1","borrowDate":"2026-08-07","returnDate":"2026-08-07","startTime":"11:21","endTime":"12:21","purpose":"PDP","createdAt":"8/7/2026 11:31:19"},{"id":"ajr3um1fq","status":"Murid","userName":"NUR Ijaz Aryan bin addul azim","equipmentTypes":["Komputer Riba","Aksesori"],"equipmentNo":"3","borrowDate":"2026-08-07","returnDate":"2026-08-07","startTime":"11:21","endTime":"12:21","purpose":"Pdp","createdAt":"8/7/2026 11:31:19"},{"id":"fl7wj26ev","status":"Murid","userName":"HASLINA BINTI ZAINI","equipmentTypes":["Komputer Riba","Aksesori"],"equipmentNo":"5","borrowDate":"2026-07-17","returnDate":"2026-07-17","startTime":"8:09","endTime":"9:09","purpose":"PDP","createdAt":"7/17/2026 8:10:17"},{"id":"0qmali8yi","status":"Murid","userName":"Jarell Cheng chen Xi","equipmentTypes":["Komputer Riba","Aksesori"],"equipmentNo":"1","borrowDate":"2026-07-17","returnDate":"2026-07-17","startTime":"8:09","endTime":"9:09","purpose":"PDP","createdAt":"7/17/2026 8:10:20"},{"id":"61gc5j8jl","status":"Murid","userName":"NUR AISYAH ELEUNIEY ZAHRAH BINTI MOHD JUNAIDI","equipmentTypes":["Komputer Riba","Aksesori"],"equipmentNo":"2","borrowDate":"2026-07-17","returnDate":"2026-07-17","startTime":"8:09","endTime":"9:09","purpose":"PDP","createdAt":"7/17/2026 8:10:37"},{"id":"7098fonye","status":"Murid","userName":"TAY JING XUAN","equipmentTypes":["Komputer Riba"],"equipmentNo":"3","borrowDate":"2026-07-17","returnDate":"2026-07-17","startTime":"8:07","endTime":"9:07","purpose":"Pandai","createdAt":"7/17/2026 8:07:11"},{"id":"vjnl558mw","status":"Murid","userName":"EVAN","equipmentTypes":["Komputer Riba"],"equipmentNo":"2","borrowDate":"2026-07-16","returnDate":"2026-07-16","startTime":"8:07","endTime":"9:07","purpose":"Ains","createdAt":"7/16/2026 8:07:54"},{"id":"ajzgdz6oc","status":"Murid","userName":"HASLINA BINTI ZAINI","equipmentTypes":["Komputer Riba"],"equipmentNo":"5","borrowDate":"2026-07-10","returnDate":"2026-07-10","startTime":"8:16","endTime":"9:16","purpose":"PDP","createdAt":"7/10/2026 8:16:57"},{"id":"sd7kpy2u5","status":"Murid","userName":"NUR AINUN ADLINA BINTI MUHAMMAD AMIRUL AIMAN NG","equipmentTypes":["Komputer Riba"],"equipmentNo":"4","borrowDate":"2026-07-10","returnDate":"2026-07-10","startTime":"8:15","endTime":"9:15","purpose":"PdP","createdAt":"7/10/2026 8:15:59"},{"id":"3jrx33zwm","status":"Murid","userName":"NUR AISYAH ELEUNIEY ZAHRAH BINTI MOHD JUNAIDI","equipmentTypes":["Komputer Riba"],"equipmentNo":"2","borrowDate":"2026-07-10","returnDate":"2026-07-10","startTime":"8:15","endTime":"9:15","purpose":"PDP","createdAt":"7/10/2026 8:16:39"},{"id":"3bvp1nzr9","status":"Murid","userName":"Evan Cheng Yu Ze","equipmentTypes":["Komputer Riba"],"equipmentNo":"2","borrowDate":"2026-07-09","returnDate":"2026-07-09","startTime":"9:41","endTime":"10:41","purpose":"Ains","createdAt":"7/9/2026 9:42:46"},{"id":"ozjtkllb0","status":"Murid","userName":"TAY JING XUAN","equipmentTypes":["Komputer Riba"],"equipmentNo":"3","borrowDate":"2026-07-03","returnDate":"2026-07-03","startTime":"8:39","endTime":"9:39","purpose":"PDP","createdAt":"7/3/2026 8:40:08"},{"id":"i2ivi5hbe","status":"Murid","userName":"LETTICE HO MEL XUAN","equipmentTypes":["Komputer Riba"],"equipmentNo":"1","borrowDate":"2026-07-02","returnDate":"2026-07-02","startTime":"11:36","endTime":"12:36","purpose":"PDP","createdAt":"7/2/2026 11:36:59"},{"id":"azdu0gr16","status":"Murid","userName":"Tay Jing Xuan","equipmentTypes":["Komputer Riba","Aksesori"],"equipmentNo":"3","borrowDate":"2026-07-01","returnDate":"2026-07-01","startTime":"12:41","endTime":"13:41","purpose":"PDP","createdAt":"7/1/2026 12:41:18"},{"id":"qwhzoem80","status":"Murid","userName":"HASLINA BINTI ZAINI","equipmentTypes":["Komputer Riba","Aksesori"],"equipmentNo":"5","borrowDate":"2026-07-01","returnDate":"2026-07-01","startTime":"12:40","endTime":"13:40","purpose":"PDP","createdAt":"7/1/2026 12:41:09"},{"id":"usxfx8vgm","status":"Murid","userName":"NUR AISYAH ELEUNIEY ZAHRAH BINTI MOHD JUNAIDI","equipmentTypes":["Komputer Riba"],"equipmentNo":"2","borrowDate":"2026-07-01","returnDate":"2026-07-01","startTime":"12:40","endTime":"13:40","purpose":"KUIZ","createdAt":"7/1/2026 12:42:44"},{"id":"porik55gl","status":"Murid","userName":"NUR AINUN ADLINA BINTI MUHAMMAD AMIRUL AIMAN NG","equipmentTypes":["Komputer Riba","Aksesori"],"equipmentNo":"4","borrowDate":"2026-07-01","returnDate":"2026-07-01","startTime":"12:39","endTime":"13:39","purpose":"MENJAWAB QUIZ IMELC","createdAt":"7/1/2026 12:40:31"},{"id":"szq97ioyi","status":"Guru","userName":"Evan Cheng Yu Ze","equipmentTypes":["Komputer Riba"],"equipmentNo":"2","borrowDate":"2026-06-30","returnDate":"2026-06-30","startTime":"7:38","endTime":"8:38","purpose":"Ains","createdAt":"7/1/2026 7:39:47"},{"id":"4tnwm341v","status":"Murid","userName":"HASLINA","equipmentTypes":["Komputer Riba"],"equipmentNo":"5","borrowDate":"2026-06-16","returnDate":"2026-06-16","startTime":"11:36","endTime":"12:36","purpose":"PDP","createdAt":"6/16/2026 11:36:27"},{"id":"wmrq1c46v","status":"Murid","userName":"NUR AINUN ADLINA BINTI MUHAMMAD AMIRUL AIMAN NG","equipmentTypes":["Komputer Riba"],"equipmentNo":"4","borrowDate":"2026-06-16","returnDate":"2026-06-16","startTime":"11:36","endTime":"12:36","purpose":"PdP","createdAt":"6/16/2026 11:36:41"},{"id":"5xvydgywr","status":"Murid","userName":"Nur Alisha  Binti Abdul Hakim","equipmentTypes":["Komputer Riba","Aksesori"],"equipmentNo":"4","borrowDate":"2026-06-12","returnDate":"2026-06-12","startTime":"8:12","endTime":"9:12","purpose":"PDP MUZIK","createdAt":"6/12/2026 8:14:59"},{"id":"fuswnvace","status":"Murid","userName":"Evan Cheng Yu Ze","equipmentTypes":["Komputer Riba"],"equipmentNo":"2","borrowDate":"2026-06-12","returnDate":"2026-06-12","startTime":"8:10","endTime":"9:10","purpose":"Ptp Muzik","createdAt":"6/12/2026 8:12:04"},{"id":"wzdnwwsj1","status":"Murid","userName":"Ijaz","equipmentTypes":["Komputer Riba"],"equipmentNo":"3","borrowDate":"2026-06-12","returnDate":"2026-06-12","startTime":"8:00","endTime":"9:11","purpose":"Pdp muzik","createdAt":"6/12/2026 8:12:06"},{"id":"wlg0r3613","status":"Murid","userName":"Sofea","equipmentTypes":["Komputer Riba"],"equipmentNo":"1","borrowDate":"2026-06-12","returnDate":"2026-06-12","startTime":"8:00","endTime":"9:12","purpose":"pdp muzik","createdAt":"6/12/2026 8:14:14"},{"id":"7m7g60fuo","status":"Murid","userName":"Ainun","equipmentTypes":["Komputer Riba","Aksesori"],"equipmentNo":"4","borrowDate":"2026-06-10","returnDate":"2026-06-10","startTime":"9:39","endTime":"10:39","purpose":"PDP","createdAt":"6/10/2026 9:39:33"},{"id":"nqts7uks8","status":"Murid","userName":"HASLINA","equipmentTypes":["Komputer Riba","Aksesori"],"equipmentNo":"5","borrowDate":"2026-06-10","returnDate":"2026-06-10","startTime":"9:39","endTime":"10:39","purpose":"PDP","createdAt":"6/10/2026 9:39:35"},{"id":"0bbnp45wq","status":"Murid","userName":"LETTICE HO MEL XUAN","equipmentTypes":["Komputer Riba"],"equipmentNo":"1","borrowDate":"2026-06-10","returnDate":"2026-06-10","startTime":"7:36","endTime":"8:36","purpose":"PDP","createdAt":"2026-06-10"},{"id":"u3fkz74wf","status":"Murid","userName":"Haslina Binti Zaini","equipmentTypes":["Komputer Riba"],"equipmentNo":"5","borrowDate":"2026-06-10","returnDate":"2026-06-10","startTime":"7:35","endTime":"8:35","purpose":"PDP","createdAt":"6/11/2026 7:35:59"},{"id":"valwb79w0","status":"Murid","userName":"NUR AINUN ADLINA","equipmentTypes":["Komputer Riba"],"equipmentNo":"4","borrowDate":"2026-06-10","returnDate":"2026-06-10","startTime":"7:35","endTime":"8:35","purpose":"PDP","createdAt":"6/11/2026 7:36:18"},{"id":"inrvxni10","status":"Murid","userName":"ainun","equipmentTypes":["Komputer Riba"],"equipmentNo":"4","borrowDate":"2026-06-10","returnDate":"2026-06-10","startTime":"11:38","endTime":"12:38","purpose":"PDP","createdAt":"6/10/2026 11:38:42"},{"id":"y2f65swo9","status":"Murid","userName":"Lettice Ho Mel Xuan","equipmentTypes":["Komputer Riba"],"equipmentNo":"1","borrowDate":"2026-06-10","returnDate":"2026-06-10","startTime":"11:38","endTime":"12:38","purpose":"PDP","createdAt":"2026-06-10"},{"id":"dzz3kzkse","status":"Murid","userName":"Haslina","equipmentTypes":["Komputer Riba","Aksesori"],"equipmentNo":"5","borrowDate":"2026-06-10","returnDate":"2026-06-10","startTime":"11:37","endTime":"12:37","purpose":"PDP","createdAt":"2026-06-10"},{"id":"0x35w2y3l","status":"Murid","userName":"Evan Cheng Yu Ze","equipmentTypes":["Komputer Riba"],"equipmentNo":"2","borrowDate":"2026-06-09","returnDate":"2026-06-09","startTime":"7:54","endTime":"8:54","purpose":"Ains","createdAt":"6/10/2026 7:55:17"},{"id":"34aqc2d88","status":"Murid","userName":"HASLINA","equipmentTypes":["Komputer Riba"],"equipmentNo":"5","borrowDate":"2026-05-13","returnDate":"2026-05-13","startTime":"9:39","endTime":"10:39","purpose":"PDP","createdAt":"5/13/2026 9:39:35"},{"id":"ub9jnvhlo","status":"Murid","userName":"NUR AINUN ADLINA BINTI MUHAMMAD AMIRUL AIMAN NG","equipmentTypes":["Komputer Riba"],"equipmentNo":"4","borrowDate":"2026-05-13","returnDate":"2026-05-13","startTime":"9:38","endTime":"10:38","purpose":"pdp","createdAt":"5/13/2026 9:39:46"},{"id":"0fq2ng7by","status":"Murid","userName":"HASLINA","equipmentTypes":["Komputer Riba"],"equipmentNo":"5","borrowDate":"2026-05-13","returnDate":"2026-05-13","startTime":"7:45","endTime":"8:45","purpose":"PDP","createdAt":"5/14/2026 7:45:30"},{"id":"dy238812d","status":"Murid","userName":"NUR AINUN ADLINA BINTI MUHAMMAD AMIRUL AIMAN NG","equipmentTypes":["Komputer Riba"],"equipmentNo":"4","borrowDate":"2026-05-13","returnDate":"2026-05-13","startTime":"7:44","endTime":"8:44","purpose":"PDP","createdAt":"5/14/2026 7:44:53"},{"id":"x5qcqsma0","status":"Murid","userName":"Evan Cheng Yu Ze","equipmentTypes":["Komputer Riba"],"equipmentNo":"2","borrowDate":"2026-05-12","returnDate":"2026-05-12","startTime":"7:41","endTime":"8:41","purpose":"Ains","createdAt":"5/13/2026 7:42:40"},{"id":"05m7mrjod","status":"Murid","userName":"NUR SOFEA HUMAIRAH","equipmentTypes":["Komputer Riba"],"equipmentNo":"1","borrowDate":"2026-05-08","returnDate":"2026-05-08","startTime":"8:07","endTime":"9:07","purpose":"PdP MUZIK","createdAt":"5/8/2026 8:07:54"},{"id":"4ab14or01","status":"Murid","userName":"Nur alisha binti abdul hakim","equipmentTypes":["Komputer Riba","Aksesori"],"equipmentNo":"4","borrowDate":"2026-05-08","returnDate":"2026-05-08","startTime":"8:07","endTime":"9:07","purpose":"PDP MUZIK","createdAt":"5/8/2026 8:11:12"},{"id":"usbuy5tid","status":"Guru","userName":"Ijaz Aryan","equipmentTypes":["Komputer Riba"],"equipmentNo":"3","borrowDate":"2026-05-08","returnDate":"2026-05-08","startTime":"8:06","endTime":"9:06","purpose":"Pdp Muzik","createdAt":"5/8/2026 8:08:16"},{"id":"7dyumgdeb","status":"Murid","userName":"Evan Cheng Yu Ze","equipmentTypes":["Komputer Riba"],"equipmentNo":"2","borrowDate":"2026-05-08","returnDate":"2026-05-08","startTime":"8:05","endTime":"9:05","purpose":"Ptp musik","createdAt":"5/8/2026 8:06:22"},{"id":"i0yltbm34","status":"Murid","userName":"HASLINA","equipmentTypes":["Komputer Riba"],"equipmentNo":"5","borrowDate":"2026-05-08","returnDate":"2026-05-08","startTime":"12:24","endTime":"13:24","purpose":"PDP","createdAt":"5/8/2026 12:25:01"},{"id":"iox9yfqv9","status":"Murid","userName":"NUR AINUN ADLINA BINTI MUHAMMAD AMIRUL AIMAN NG","equipmentTypes":["Komputer Riba"],"equipmentNo":"4","borrowDate":"2026-05-08","returnDate":"2026-05-08","startTime":"12:21","endTime":"13:21","purpose":"BINA APLIKASI ANDROID","createdAt":"5/8/2026 12:23:13"},{"id":"fbv0xv2my","status":"Murid","userName":"Nur Diandra","equipmentTypes":["Komputer Riba","Aksesori"],"equipmentNo":"5","borrowDate":"2026-05-06","returnDate":"2026-05-06","startTime":"7:46","endTime":"8:46","purpose":"Wordwall","createdAt":"5/7/2026 7:48:18"},{"id":"pvyecrosc","status":"Murid","userName":"Nur Sofea Humaira","equipmentTypes":["Komputer Riba"],"equipmentNo":"1","borrowDate":"2026-05-06","returnDate":"2026-05-06","startTime":"7:43","endTime":"8:43","purpose":"jawab quiz","createdAt":"5/7/2026 7:45:15"},{"id":"csyxyyn44","status":"Murid","userName":"Nurijaz","equipmentTypes":["Komputer Riba"],"equipmentNo":"3","borrowDate":"2026-05-06","returnDate":"2026-05-06","startTime":"7:43","endTime":"8:43","purpose":"Wordwall","createdAt":"5/7/2026 7:45:29"},{"id":"q8nnihl0j","status":"Murid","userName":"Evan Cheng Yu Ze","equipmentTypes":["Komputer Riba"],"equipmentNo":"2","borrowDate":"2026-05-06","returnDate":"2026-05-06","startTime":"7:42","endTime":"8:42","purpose":"Workwall","createdAt":"5/7/2026 7:42:58"},{"id":"yhws5fsmc","status":"Murid","userName":"Nur alisha binti abdul hakim","equipmentTypes":["Komputer Riba"],"equipmentNo":"4","borrowDate":"2026-05-06","returnDate":"2026-05-06","startTime":"7:42","endTime":"8:42","purpose":"wordwall","createdAt":"5/7/2026 7:44:36"},{"id":"egmfi4rep","status":"Murid","userName":"Evan Cheng Yu Ze","equipmentTypes":["Komputer Riba"],"equipmentNo":"2","borrowDate":"2026-05-05","returnDate":"2026-05-05","startTime":"9:47","endTime":"10:47","purpose":"Youtube","createdAt":"5/5/2026 9:48:08"},{"id":"33k5ug747","status":"Murid","userName":"Nur Diandra","equipmentTypes":["Komputer Riba"],"equipmentNo":"5","borrowDate":"2026-05-05","returnDate":"2026-05-05","startTime":"9:47","endTime":"10:47","purpose":"PDP","createdAt":"5/5/2026 9:48:29"},{"id":"cp5e0028g","status":"Murid","userName":"Nur ijaz Aryan bin abdul azim","equipmentTypes":["Komputer Riba"],"equipmentNo":"3","borrowDate":"2026-05-05","returnDate":"2026-05-05","startTime":"9:47","endTime":"10:47","purpose":"youtube","createdAt":"5/5/2026 9:50:03"},{"id":"z3151fuxn","status":"Murid","userName":"Nur Alisha Binti  Abdul Hakim","equipmentTypes":["Aksesori"],"equipmentNo":"4","borrowDate":"2026-05-05","returnDate":"2026-05-05","startTime":"9:47","endTime":"10:47","purpose":"menonton video untuk belajar","createdAt":"5/5/2026 9:50:10"},{"id":"mt2x5ycih","status":"Guru","userName":"Nur Sofea Humaira","equipmentTypes":["Komputer Riba"],"equipmentNo":"1","borrowDate":"2026-05-05","returnDate":"2026-05-05","startTime":"9:46","endTime":"10:46","purpose":"Menonton video untuk tujuan belajar","createdAt":"5/5/2026 9:50:06"},{"id":"538kqrhov","status":"Murid","userName":"Evan Cheng Yu Ze","equipmentTypes":["Komputer Riba"],"equipmentNo":"2","borrowDate":"2026-05-05","returnDate":"2026-05-05","startTime":"7:36","endTime":"8:36","purpose":"Ains","createdAt":"5/6/2026 7:37:33"},{"id":"6ghk25zng","status":"Murid","userName":"Haslina Binti Zaini","equipmentTypes":["Komputer Riba"],"equipmentNo":"5","borrowDate":"2026-05-05","returnDate":"2026-05-05","startTime":"12:47","endTime":"13:47","purpose":"PDP","createdAt":"5/5/2026 12:48:47"},{"id":"hri8zr3xz","status":"Murid","userName":"NUR AINUN ADLINA BINTI MUHAMMAD AMIRUL AIMAN NG","equipmentTypes":["Komputer Riba"],"equipmentNo":"4","borrowDate":"2026-05-05","returnDate":"2026-05-05","startTime":"12:44","endTime":"13:44","purpose":"PDP","createdAt":"5/5/2026 12:45:51"},{"id":"xjrvo3m2q","status":"Murid","userName":"Nur Sofea Humaira","equipmentTypes":["Komputer Riba"],"equipmentNo":"1","borrowDate":"2026-05-05","returnDate":"2026-05-05","startTime":"12:38","endTime":"13:38","purpose":"PdP","createdAt":"5/5/2026 12:40:24"},{"id":"b8akplcce","status":"Murid","userName":"Ijaz Aryan Bin abdul Azim","equipmentTypes":["Komputer Riba"],"equipmentNo":"3","borrowDate":"2026-05-05","returnDate":"2026-05-05","startTime":"12:36","endTime":"13:36","purpose":"PDP","createdAt":"5/5/2026 12:39:54"},{"id":"47bfx7y17","status":"Murid","userName":"Evan Cheng Yu Ze","equipmentTypes":["Komputer Riba"],"equipmentNo":"2","borrowDate":"2026-05-05","returnDate":"2026-05-05","startTime":"12:35","endTime":"13:35","purpose":"Pdp","createdAt":"5/5/2026 12:39:31"},{"id":"mpvcp70li","status":"Murid","userName":"KIEW JIA MIN","equipmentTypes":["Komputer Riba"],"equipmentNo":"5","borrowDate":"2026-04-30","returnDate":"2026-04-30","startTime":"11:17","endTime":"12:17","purpose":"NILAN","createdAt":"4/30/2026 11:17:21"},{"id":"dulcxqy7z","status":"Murid","userName":"NUR AISYAH ELEUNIEY ZAHRAH BINTI MOHD JUNAIDI","equipmentTypes":["Komputer Riba"],"equipmentNo":"2","borrowDate":"2026-04-30","returnDate":"2026-04-30","startTime":"11:13","endTime":"12:13","purpose":"PDP","createdAt":"4/30/2026 11:14:59"},{"id":"rx3mk9bpd","status":"Murid","userName":"Tay Jing Xuan","equipmentTypes":["Komputer Riba"],"equipmentNo":"3","borrowDate":"2026-04-29","returnDate":"2026-04-29","startTime":"8:14","endTime":"9:14","purpose":"PDP","createdAt":"4/29/2026 8:15:01"},{"id":"wkx6s6cml","status":"Murid","userName":"Haslina Binti Zaini","equipmentTypes":["Komputer Riba"],"equipmentNo":"5","borrowDate":"2026-04-29","returnDate":"2026-04-29","startTime":"8:13","endTime":"9:13","purpose":"pdp","createdAt":"4/29/2026 8:13:21"},{"id":"l25wsra8v","status":"Murid","userName":"Diandra","equipmentTypes":["Komputer Riba"],"equipmentNo":"5","borrowDate":"2026-04-28","returnDate":"2026-04-28","startTime":"12:43","endTime":"13:43","purpose":"Ains","createdAt":"4/28/2026 12:46:09"},{"id":"saobshi9u","status":"Murid","userName":"Nur alisha binti abdul  hakim","equipmentTypes":["Komputer Riba"],"equipmentNo":"4","borrowDate":"2026-04-28","returnDate":"2026-04-28","startTime":"12:42","endTime":"13:42","purpose":"ains","createdAt":"4/28/2026 12:45:03"},{"id":"tt77gj75l","status":"Murid","userName":"Ijaz","equipmentTypes":["Komputer Riba"],"equipmentNo":"3","borrowDate":"2026-04-28","returnDate":"2026-04-28","startTime":"12:42","endTime":"13:42","purpose":"Ains","createdAt":"4/28/2026 12:45:57"},{"id":"fqoa97ybw","status":"Guru","userName":"Evan Cheng Yu Ze","equipmentTypes":["Komputer Riba"],"equipmentNo":"2","borrowDate":"2026-04-28","returnDate":"2026-04-28","startTime":"12:41","endTime":"13:41","purpose":"Ains","createdAt":"4/28/2026 12:45:02"},{"id":"2nudxsi93","status":"Murid","userName":"Evan Cheng Yu Ze","equipmentTypes":["Komputer Riba"],"equipmentNo":"2","borrowDate":"2026-04-22","returnDate":"2026-04-22","startTime":"7:30","endTime":"9:01","purpose":"Ains","createdAt":"4/22/2026 8:03:56"},{"id":"7sw8miig8","status":"Murid","userName":"KIEW JIA MIN","equipmentTypes":["Komputer Riba"],"equipmentNo":"5","borrowDate":"2026-04-22","returnDate":"2026-04-22","startTime":"12:45","endTime":"13:45","purpose":"PSIKOMETRIK","createdAt":"4/22/2026 12:45:04"},{"id":"n177z0vs9","status":"Murid","userName":"Tay Jing Xuan","equipmentTypes":["Komputer Riba"],"equipmentNo":"3","borrowDate":"2026-04-22","returnDate":"2026-04-22","startTime":"12:44","endTime":"13:44","purpose":"PSIKOMETRIK","createdAt":"4/22/2026 12:45:02"},{"id":"sgus21jls","status":"Murid","userName":"Jarell Cheng Chen Xi","equipmentTypes":["Komputer Riba"],"equipmentNo":"1","borrowDate":"2026-04-22","returnDate":"2026-04-22","startTime":"12:44","endTime":"13:44","purpose":"psikometrik","createdAt":"4/22/2026 12:45:37"},{"id":"7qia6os3x","status":"Murid","userName":"NUR AISYAH ELEUNIEY ZAHRA BINTI MOHD JUNAIDI","equipmentTypes":["Komputer Riba"],"equipmentNo":"2","borrowDate":"2026-04-22","returnDate":"2026-04-22","startTime":"12:44","endTime":"13:44","purpose":"PSIKOMETRIK","createdAt":"4/22/2026 12:47:42"},{"id":"vi8g5jody","status":"Murid","userName":"Evan Cheng Yu Ze","equipmentTypes":["Komputer Riba"],"equipmentNo":"2","borrowDate":"2026-04-16","returnDate":"2026-04-16","startTime":"8:11","endTime":"9:11","purpose":"Ains","createdAt":"4/16/2026 8:13:20"},{"id":"rgeyv2q7q","status":"Murid","userName":"HASLINA BINTI ZAINI","equipmentTypes":["Komputer Riba"],"equipmentNo":"5","borrowDate":"2026-04-16","returnDate":"2026-04-16","startTime":"11:43","endTime":"12:43","purpose":"PDP","createdAt":"4/16/2026 11:42:58"},{"id":"0q3hir35x","status":"Murid","userName":"HASLINA BINTI ZAINI","equipmentTypes":["Komputer Riba"],"equipmentNo":"5","borrowDate":"2026-04-15","returnDate":"2026-04-15","startTime":"15:39","endTime":"16:39","purpose":"QUIZ","createdAt":"4/15/2026 15:39:02"},{"id":"aavyk2web","status":"Murid","userName":"Tay Jing Xuan","equipmentTypes":["Komputer Riba"],"equipmentNo":"3","borrowDate":"2026-04-15","returnDate":"2026-04-15","startTime":"15:37","endTime":"16:37","purpose":"Kuiz","createdAt":"4/15/2026 15:38:16"},{"id":"2ifqjfnkn","status":"Murid","userName":"Nur Aisyah Eleuniey Zahra Binti mohd Junaidi","equipmentTypes":["Komputer Riba"],"equipmentNo":"2","borrowDate":"2026-04-15","returnDate":"2026-04-15","startTime":"15:36","endTime":"16:36","purpose":"Quiz","createdAt":"4/15/2026 15:38:20"},{"id":"iaggxtjkr","status":"Murid","userName":"Tay Jing Xuan","equipmentTypes":["Komputer Riba"],"equipmentNo":"3","borrowDate":"2026-04-14","returnDate":"2026-04-14","startTime":"11:43","endTime":"12:43","purpose":"Nilam","createdAt":"4/14/2026 11:44:14"},{"id":"jsszu0y7u","status":"Murid","userName":"Kiew Jia Min","equipmentTypes":["Komputer Riba","Aksesori"],"equipmentNo":"5","borrowDate":"2026-04-14","returnDate":"2026-04-14","startTime":"11:43","endTime":"12:43","purpose":"Nilam","createdAt":"4/14/2026 11:46:38"},{"id":"h3hoqxltr","status":"Murid","userName":"Jarell Cheng Chen Xi","equipmentTypes":["Komputer Riba","Aksesori"],"equipmentNo":"1","borrowDate":"2026-04-14","returnDate":"2026-04-14","startTime":"11:42","endTime":"12:42","purpose":"PDP","createdAt":"4/14/2026 11:45:01"},{"id":"tfn6xfdhk","status":"Murid","userName":"Nur Aisyah Eleuniey Zahra Binti Mohd Junaidi","equipmentTypes":["Komputer Riba"],"equipmentNo":"2","borrowDate":"2026-04-14","returnDate":"2026-04-14","startTime":"11:41","endTime":"12:41","purpose":"PDP","createdAt":"4/14/2026 11:44:27"},{"id":"a9im706sm","status":"Guru","userName":"Farah","equipmentTypes":["Komputer Riba","Aksesori"],"equipmentNo":"1","borrowDate":"2026-01-18","returnDate":"2026-01-18","startTime":"12:15","endTime":"13:15","purpose":"Latihan murid","createdAt":"1/18/2026 12:15:28"},{"id":"v8iw5li6q","status":"Guru","userName":"Farah","equipmentTypes":["Komputer Riba"],"equipmentNo":"1","borrowDate":"2026-01-18","returnDate":"2026-01-18","startTime":"12:13","endTime":"13:13","purpose":"Latihan murid","createdAt":"1/18/2026 12:14:59"},{"id":",6/10/2026 11:38:07","status":"Murid","userName":"","equipmentTypes":[],"equipmentNo":"1","borrowDate":"","returnDate":"","startTime":"","endTime":"","purpose":"","createdAt":""},{"id":",6/10/2026 11:39:45","status":"Murid","userName":"","equipmentTypes":[],"equipmentNo":"1","borrowDate":"","returnDate":"","startTime":"","endTime":"","purpose":"","createdAt":""},{"id":",6/11/2026 7:36:43","status":"Murid","userName":"","equipmentTypes":[],"equipmentNo":"1","borrowDate":"","returnDate":"","startTime":"","endTime":"","purpose":"","createdAt":""}];
+
+        // Shim untuk elakkan Uncaught ReferenceError jika Google Sheets memanggil Query.setResponse
+        window.google = window.google || {};
+        window.google.visualization = window.google.visualization || {};
+        window.google.visualization.Query = window.google.visualization.Query || { setResponse: function() {} };
+
         const STORAGE_KEY = 'sjkc_chichih_ict_records';
+        const SPREADSHEET_ID = '1_vqbYt_uLzZLLtCtnqR3qqfPcQ_70M6oqJkE7pApKqM';
         const GAS_URL = 'https://script.google.com/macros/s/AKfycbyn_SLD1stVo1azcb_7Od6MjrylZw8XOo0Mm11xNstR2zizL82jT60jd42VLhMZeSK5/exec';
 
-        // --- SERVIS SIMPANAN DATA ---
-        const storageService = {
-            getRecords: () => {
-                const data = localStorage.getItem(STORAGE_KEY);
-                return data ? JSON.parse(data) : [];
+        let state = {
+            tab: 'form',
+            period: 'bulanan', // Mulakan dengan bulanan agar data spreadsheet semasa terus dipaparkan
+            records: [],
+            tableFilter: {
+                search: '',
+                status: 'semua',
+                pageSize: 5
             },
-            saveRecord: async (record) => {
-                const records = storageService.getRecords();
-                localStorage.setItem(STORAGE_KEY, JSON.stringify([record, ...records]));
-                try {
-                    // Hantar ke Google Apps Script
-                    await fetch(GAS_URL, { 
-                        method: 'POST', 
-                        mode: 'no-cors', 
-                        headers: { 'Content-Type': 'application/json' }, 
-                        body: JSON.stringify(record) 
-                    });
-                } catch (e) { console.error('Ralat GAS:', e); }
-                return true;
-            },
-            getStats: (records) => {
-                const now = new Date();
-                const todayStr = now.toISOString().split('T')[0];
-                return {
-                    todayUsage: records.filter(r => r.borrowDate === todayStr).length,
-                    currentlyBorrowed: records.filter(r => new Date(r.returnDate) >= now).length,
-                    monthlyTotal: records.filter(r => new Date(r.borrowDate).getMonth() === now.getMonth()).length
-                };
+            formData: {
+                status: 'Guru',
+                userName: '',
+                equipmentTypes: [],
+                equipmentNo: '1',
+                borrowDate: '',
+                startTime: '',
+                endTime: '',
+                purpose: ''
             }
         };
 
-        // --- KOMPONEN: TOAST KEJAYAAN ---
-        const SuccessToast = ({ show, onClose }) => {
-            useEffect(() => { if (show) { const t = setTimeout(onClose, 5000); return () => clearTimeout(t); } }, [show]);
-            if (!show) return null;
-            return (
-                <div className="fixed top-5 right-5 z-50 animate-bounce">
-                    <div className="bg-white border-l-4 border-green-500 shadow-2xl rounded-xl p-5 flex items-start space-x-4 max-w-sm">
-                        <div className="bg-green-100 p-2 rounded-full"><i className="fas fa-check text-green-600"></i></div>
-                        <div>
-                            <h4 className="font-bold text-slate-800">Berjaya!</h4>
-                            <p className="text-xs text-slate-600">Data berjaya disimpan. Selamat menggunakan peralatan ICT dengan berhemah.</p>
-                        </div>
-                        <button onClick={onClose} className="text-slate-400 hover:text-slate-600 transition-colors"><i className="fas fa-times"></i></button>
-                    </div>
-                </div>
-            );
-        };
+        let chartInstance = null;
 
-        // --- KOMPONEN: DASHBOARD ---
-        const Dashboard = ({ recentRecords }) => {
-            const [period, setPeriod] = useState('harian');
-            const chartRef = useRef(null);
-            const chartInstance = useRef(null);
+        function mergeRecords(existing, incoming) {
+            const map = new Map();
+            incoming.forEach(r => { if (r.id) map.set(r.id, r); });
+            existing.forEach(r => { if (r.id) map.set(r.id, r); });
+            const merged = Array.from(map.values());
+            merged.sort((a, b) => {
+                const timeA = (a.borrowDate || '') + ' ' + (a.startTime || '');
+                const timeB = (b.borrowDate || '') + ' ' + (b.startTime || '');
+                return timeB.localeCompare(timeA);
+            });
+            return merged;
+        }
 
-            const getFiltered = () => {
-                const now = new Date();
-                return recentRecords.filter(r => {
-                    const d = new Date(r.borrowDate);
-                    if (period === 'harian') return d.toDateString() === now.toDateString();
-                    if (period === 'mingguan') return (now - d) <= 7*24*60*60*1000;
-                    if (period === 'bulanan') return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+        function getRecords() {
+            try {
+                const raw = localStorage.getItem(STORAGE_KEY);
+                const local = raw ? JSON.parse(raw) : [];
+                const merged = mergeRecords(local, INITIAL_SPREADSHEET_RECORDS);
+                if (local.length < merged.length) {
+                    localStorage.setItem(STORAGE_KEY, JSON.stringify(merged));
+                }
+                return merged;
+            } catch (e) {
+                console.error('Ralat membaca data:', e);
+                return INITIAL_SPREADSHEET_RECORDS;
+            }
+        }
+
+        async function saveRecord(record) {
+            try {
+                state.records = [record, ...state.records.filter(r => r.id !== record.id)];
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(state.records));
+                
+                // Backup ke Google Apps Script secara asynchronous (no-cors)
+                try {
+                    await fetch(GAS_URL, {
+                        method: 'POST',
+                        mode: 'no-cors',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(record)
+                    });
+                } catch (e) {
+                    console.error('Ralat GAS:', e);
+                }
+                return true;
+            } catch (e) {
+                console.error('Ralat menyimpan rekod:', e);
+                return false;
+            }
+        }
+
+        // Penyegerakan terus dengan Google Sheets melalui JSONP
+        function syncWithSpreadsheet() {
+            const iconSync = document.getElementById('icon-sync');
+            const statusEl = document.getElementById('sheet-sync-status');
+            if (iconSync) iconSync.classList.add('animate-spin', 'text-blue-600');
+            if (statusEl) statusEl.textContent = 'Menyegerakkan rekod dari Google Spreadsheet...';
+
+            const months = ['Oktober', 'September', 'Ogos', 'Julai', 'Jun', 'Mei', 'April', 'Januari'];
+            let completed = 0;
+            const fetched = [];
+
+            months.forEach(m => {
+                const cb = 'gviz_cb_' + Math.random().toString(36).substring(2, 9);
+                const script = document.createElement('script');
+                const timer = setTimeout(() => {
+                    done();
+                }, 5000);
+
+                function done() {
+                    clearTimeout(timer);
+                    window[cb] = function() {};
+                    if (script.parentNode) script.parentNode.removeChild(script);
+                    completed++;
+                    if (completed >= months.length) {
+                        finishSync(fetched);
+                    }
+                }
+
+                window[cb] = function(res) {
+                    try {
+                        if (res && res.table && res.table.rows) {
+                            res.table.rows.forEach(row => {
+                                if (!row || !row.c) return;
+                                const getVal = (idx) => {
+                                    const cell = row.c[idx];
+                                    if (!cell) return '';
+                                    return String(cell.f !== undefined && cell.f !== null ? cell.f : (cell.v !== undefined && cell.v !== null ? cell.v : '')).trim();
+                                };
+                                const id = getVal(0);
+                                if (!id || id === 'ID Rekod') return;
+                                const statusVal = getVal(1);
+                                const eqVal = getVal(3);
+                                const eqArr = [];
+                                if (eqVal.includes('Komputer Riba') || eqVal.includes('Laptop')) eqArr.push('Komputer Riba');
+                                if (eqVal.includes('Aksesori')) eqArr.push('Aksesori');
+                                if (eqArr.length === 0 && eqVal) eqArr.push(eqVal);
+
+                                fetched.push({
+                                    id: id,
+                                    status: statusVal === 'Guru' ? 'Guru' : 'Murid',
+                                    userName: getVal(2),
+                                    equipmentTypes: eqArr,
+                                    equipmentNo: getVal(4) || '1',
+                                    borrowDate: getVal(5),
+                                    returnDate: getVal(6) || getVal(5),
+                                    startTime: getVal(7),
+                                    endTime: getVal(8),
+                                    purpose: getVal(9),
+                                    createdAt: getVal(10) || getVal(5)
+                                });
+                            });
+                        }
+                    } catch(e) {}
+                    done();
+                };
+
+                script.src = 'https://docs.google.com/spreadsheets/d/' + SPREADSHEET_ID + '/gviz/tq?tqx=responseHandler:' + cb + '&sheet=' + encodeURIComponent(m);
+                script.onerror = done;
+                document.head.appendChild(script);
+            });
+
+            function finishSync(newRecords) {
+                if (iconSync) iconSync.classList.remove('animate-spin', 'text-blue-600');
+                if (newRecords.length > 0) {
+                    state.records = mergeRecords(state.records, newRecords);
+                    localStorage.setItem(STORAGE_KEY, JSON.stringify(state.records));
+                    if (statusEl) statusEl.textContent = 'Disegerakkan: ' + state.records.length + ' rekod aktif.';
+                } else {
+                    if (statusEl) statusEl.textContent = 'Data spreadsheet sedia ada (' + state.records.length + ' rekod).';
+                }
+                renderDashboard();
+            }
+        }
+
+        // --- NAVIGATION ACTIONS ---
+        function switchTab(newTab) {
+            state.tab = newTab;
+            
+            const tabForm = document.getElementById('tab-form');
+            const tabDashboard = document.getElementById('tab-dashboard');
+            
+            const navFormDesktop = document.getElementById('nav-form-desktop');
+            const navDashDesktop = document.getElementById('nav-dash-desktop');
+            const navFormMobile = document.getElementById('nav-form-mobile');
+            const navDashMobile = document.getElementById('nav-dash-mobile');
+            
+            if (newTab === 'form') {
+                tabForm.classList.remove('hidden');
+                tabForm.classList.add('block');
+                tabDashboard.classList.add('hidden');
+                tabDashboard.classList.remove('block');
+                
+                navFormDesktop.className = "px-5 py-2 rounded-xl font-black text-xs uppercase tracking-widest transition-all duration-200 bg-white text-blue-600 shadow-sm";
+                navDashDesktop.className = "px-5 py-2 rounded-xl font-black text-xs uppercase tracking-widest transition-all duration-200 text-slate-400 hover:text-slate-600";
+                
+                navFormMobile.className = "flex-1 flex flex-col items-center justify-center py-2.5 rounded-2xl transition-all duration-200 bg-blue-600 text-white shadow-lg shadow-blue-100";
+                navDashMobile.className = "flex-1 flex flex-col items-center justify-center py-2.5 rounded-2xl transition-all duration-200 text-slate-400 hover:text-slate-600";
+            } else {
+                tabForm.classList.add('hidden');
+                tabForm.classList.remove('block');
+                tabDashboard.classList.remove('hidden');
+                tabDashboard.classList.add('block');
+                
+                navFormDesktop.className = "px-5 py-2 rounded-xl font-black text-xs uppercase tracking-widest transition-all duration-200 text-slate-400 hover:text-slate-600";
+                navDashDesktop.className = "px-5 py-2 rounded-xl font-black text-xs uppercase tracking-widest transition-all duration-200 bg-white text-blue-600 shadow-sm";
+                
+                navFormMobile.className = "flex-1 flex flex-col items-center justify-center py-2.5 rounded-2xl transition-all duration-200 text-slate-400 hover:text-slate-600";
+                navDashMobile.className = "flex-1 flex flex-col items-center justify-center py-2.5 rounded-2xl transition-all duration-200 bg-blue-600 text-white shadow-lg shadow-blue-100";
+                
+                renderDashboard();
+            }
+        }
+
+        function toggleEquipmentType(type) {
+            const index = state.formData.equipmentTypes.indexOf(type);
+            if (index > -1) {
+                state.formData.equipmentTypes.splice(index, 1);
+            } else {
+                state.formData.equipmentTypes.push(type);
+            }
+            updateEquipmentUI();
+        }
+
+        function setEquipmentNo(no) {
+            state.formData.equipmentNo = no;
+            updateEquipmentNoUI();
+        }
+
+        function setPeriod(period) {
+            state.period = period;
+            
+            document.querySelectorAll('.btn-period').forEach(btn => {
+                const btnPeriod = btn.getAttribute('data-period');
+                if (btnPeriod === period) {
+                    btn.className = "btn-period flex-1 sm:flex-initial px-3 py-1.5 rounded-lg text-[10px] font-black uppercase transition-all duration-200 bg-white text-blue-600 shadow-sm";
+                } else {
+                    btn.className = "btn-period flex-1 sm:flex-initial px-3 py-1.5 rounded-lg text-[10px] font-black uppercase transition-all duration-200 text-slate-400 hover:text-slate-600";
+                }
+            });
+            
+            renderDashboard();
+        }
+
+        // --- UI UPDATERS ---
+        function initFormDefaults() {
+            const now = new Date();
+            const dateStr = now.toISOString().split('T')[0];
+            document.getElementById('input-date').value = dateStr;
+            state.formData.borrowDate = dateStr;
+            
+            const h = String(now.getHours()).padStart(2, '0');
+            const m = String(now.getMinutes()).padStart(2, '0');
+            
+            document.getElementById('input-starttime').value = h + ':' + m;
+            state.formData.startTime = h + ':' + m;
+            
+            document.getElementById('input-username').value = '';
+            document.getElementById('input-purpose').value = '';
+            state.formData.userName = '';
+            state.formData.purpose = '';
+            state.formData.status = 'Guru';
+            document.getElementById('input-status').value = 'Guru';
+            
+            state.formData.equipmentTypes = [];
+            state.formData.equipmentNo = '1';
+            
+            const errBox = document.getElementById('form-error-box');
+            if (errBox) errBox.classList.add('hidden');
+
+            updateEquipmentUI();
+            updateEquipmentNoUI();
+        }
+
+        function updateEquipmentUI() {
+            const btnLaptop = document.getElementById('btn-equip-laptop');
+            const btnAccessory = document.getElementById('btn-equip-accessory');
+            
+            if (state.formData.equipmentTypes.includes('Komputer Riba')) {
+                btnLaptop.className = "p-6 border-2 rounded-3xl transition-all duration-200 flex flex-col items-center space-y-2 border-blue-600 bg-blue-50 text-blue-700 shadow-md shadow-blue-50";
+            } else {
+                btnLaptop.className = "p-6 border-2 rounded-3xl transition-all duration-200 flex flex-col items-center space-y-2 border-slate-100 bg-slate-50 text-slate-400 hover:border-slate-200";
+            }
+            
+            if (state.formData.equipmentTypes.includes('Aksesori')) {
+                btnAccessory.className = "p-6 border-2 rounded-3xl transition-all duration-200 flex flex-col items-center space-y-2 border-blue-600 bg-blue-50 text-blue-700 shadow-md shadow-blue-50";
+            } else {
+                btnAccessory.className = "p-6 border-2 rounded-3xl transition-all duration-200 flex flex-col items-center space-y-2 border-slate-100 bg-slate-50 text-slate-400 hover:border-slate-200";
+            }
+        }
+
+        function updateEquipmentNoUI() {
+            document.querySelectorAll('.btn-no').forEach(btn => {
+                const val = btn.getAttribute('data-val');
+                if (state.formData.equipmentNo === val) {
+                    btn.className = "btn-no w-12 h-12 rounded-2xl font-black transition-all border-2 flex items-center justify-center bg-blue-600 text-white border-blue-600 shadow-lg shadow-blue-100";
+                } else {
+                    btn.className = "btn-no w-12 h-12 rounded-2xl font-black transition-all border-2 flex items-center justify-center bg-white text-slate-400 border-slate-100 hover:border-slate-200";
+                }
+            });
+        }
+
+        function showToast() {
+            const toast = document.getElementById('success-toast');
+            toast.classList.remove('hidden');
+            toast.classList.add('flex');
+            
+            setTimeout(() => {
+                closeToast();
+            }, 5000);
+        }
+
+        function closeToast() {
+            const toast = document.getElementById('success-toast');
+            toast.classList.add('hidden');
+            toast.classList.remove('flex');
+        }
+
+        // --- DASHBOARD RENDERING ---
+        function renderDashboard() {
+            const records = state.records;
+            const period = state.period;
+            const now = new Date();
+            const todayStr = now.toISOString().split('T')[0];
+            
+            const filtered = records.filter(r => {
+                const d = new Date(r.borrowDate);
+                if (period === 'harian') {
+                    return r.borrowDate === todayStr;
+                }
+                if (period === 'mingguan') {
+                    const diffTime = Math.abs(now.getTime() - d.getTime());
+                    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                    return diffDays <= 7;
+                }
+                if (period === 'bulanan') {
+                    return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+                }
+                if (period === 'tahunan') {
                     return d.getFullYear() === now.getFullYear();
-                });
-            };
+                }
+                // keseluruhan / semua
+                return true;
+            });
+            
+            const laptopCount = filtered.filter(r => r.equipmentTypes.includes('Komputer Riba')).length;
+            const accessCount = filtered.filter(r => r.equipmentTypes.includes('Aksesori')).length;
+            const totalCount = laptopCount + accessCount;
+            const hasData = totalCount > 0;
 
-            const filtered = getFiltered();
-            const laptopCount = filtered.filter(r => r.equipmentTypes.includes(EquipmentType.LAPTOP)).length;
-            const accessCount = filtered.filter(r => r.equipmentTypes.includes(EquipmentType.ACCESSORIES)).length;
+            const guruCount = filtered.filter(r => r.status === 'Guru').length;
+            const muridCount = filtered.filter(r => r.status === 'Murid').length;
 
-            useEffect(() => {
-                if (chartInstance.current) chartInstance.current.destroy();
-                const ctx = chartRef.current.getContext('2d');
-                chartInstance.current = new Chart(ctx, {
+            // Kira Tujuan Utama
+            const purposesCount = {};
+            filtered.forEach(r => {
+                const p = (r.purpose || '').trim();
+                if (!p) return;
+                const norm = p.toLowerCase() === 'pdp' ? 'PdP' : p;
+                purposesCount[norm] = (purposesCount[norm] || 0) + 1;
+            });
+            const topPurposes = Object.entries(purposesCount).sort((a,b) => b[1] - a[1]).slice(0, 3);
+            
+            const chartNoData = document.getElementById('chart-no-data');
+            const chartHasData = document.getElementById('chart-has-data');
+            
+            if (hasData) {
+                chartNoData.classList.add('hidden');
+                chartHasData.classList.remove('hidden');
+                
+                document.getElementById('text-total-sessions').textContent = totalCount;
+                
+                if (chartInstance) {
+                    chartInstance.destroy();
+                }
+                
+                const ctx = document.getElementById('canvas-ratio').getContext('2d');
+                chartInstance = new Chart(ctx, {
                     type: 'doughnut',
                     data: {
                         labels: ['Laptop', 'Aksesori'],
                         datasets: [{
                             data: [laptopCount, accessCount],
-                            backgroundColor: ['#FF1493', '#FFD700'], // Shock Pink & Kuning
+                            backgroundColor: ['#FF1493', '#FFD700'],
                             hoverBackgroundColor: ['#FF69B4', '#FFFF00'],
                             borderColor: '#ffffff',
                             borderWidth: 4,
@@ -124,206 +823,288 @@
                             spacing: 3
                         }]
                     },
-                    options: { 
-                        responsive: true, 
-                        maintainAspectRatio: false, 
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
                         cutout: '70%',
-                        plugins: { legend: { position: 'bottom', labels: { font: { weight: 'bold', family: 'Inter' } } } }
+                        plugins: {
+                            legend: {
+                                display: false
+                            }
+                        }
                     }
                 });
-            }, [laptopCount, accessCount, period]);
+            } else {
+                chartNoData.classList.remove('hidden');
+                chartHasData.classList.add('hidden');
+                if (chartInstance) {
+                    chartInstance.destroy();
+                    chartInstance = null;
+                }
+            }
+            
+            document.getElementById('label-laptop-count').textContent = 'Laptop (' + laptopCount + ')';
+            document.getElementById('label-accessory-count').textContent = 'Aksesori (' + accessCount + ')';
+            
+            document.getElementById('card-laptop-count').textContent = laptopCount;
+            document.getElementById('card-laptop-desc').textContent = 'Unit direkodkan (' + period + ')';
+            
+            document.getElementById('card-accessory-count').textContent = accessCount;
+            document.getElementById('card-accessory-desc').textContent = 'Unit direkodkan (' + period + ')';
+            
+            document.getElementById('stat-guru-count').textContent = guruCount;
+            document.getElementById('stat-murid-count').textContent = muridCount;
+            document.getElementById('stat-period-badge').textContent = filtered.length + ' rekod';
 
-            return (
-                <div className="space-y-6 fade-in">
-                    <div className="flex justify-between items-center bg-white p-4 rounded-2xl shadow-sm border border-slate-100">
-                        <h4 className="font-bold text-slate-800 text-sm uppercase tracking-wider">Statistik Penggunaan</h4>
-                        <div className="flex bg-slate-100 p-1 rounded-xl">
-                            {['harian', 'mingguan', 'bulanan', 'tahunan'].map(p => (
-                                <button key={p} onClick={() => setPeriod(p)} className={`px-3 py-1.5 rounded-lg text-[10px] font-black uppercase transition-all ${period === p ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}>{p}</button>
-                            ))}
-                        </div>
-                    </div>
+            const purposesContainer = document.getElementById('stat-top-purposes');
+            if (topPurposes.length > 0) {
+                purposesContainer.innerHTML = topPurposes.map(([p, cnt]) => 
+                    '<span class="text-[10px] font-bold px-2 py-0.5 bg-amber-50 text-amber-700 rounded-md truncate max-w-[120px]">' + escapeHtml(p) + ' (' + cnt + ')</span>'
+                ).join('');
+            } else {
+                purposesContainer.innerHTML = '<span class="text-xs text-slate-400 italic">Tiada rekod</span>';
+            }
 
-                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                        <div className="lg:col-span-1 bg-white p-8 rounded-3xl shadow-sm border border-slate-100 flex flex-col items-center justify-center">
-                            <h5 className="text-xs font-bold text-slate-400 uppercase mb-4">Nisbah Peralatan</h5>
-                            <div className="chart-container"><canvas ref={chartRef}></canvas></div>
-                        </div>
-                        
-                        <div className="lg:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div className="bg-gradient-to-br from-[#FF1493] to-[#C71585] p-6 rounded-3xl text-white shadow-lg shadow-pink-100 flex items-center justify-between">
-                                <div><p className="text-xs font-bold uppercase opacity-80">Laptop</p><h3 className="text-5xl font-black">{laptopCount}</h3></div>
-                                <i className="fas fa-laptop text-6xl opacity-20"></i>
-                            </div>
-                            <div className="bg-gradient-to-br from-[#FFD700] to-[#DAA520] p-6 rounded-3xl text-slate-800 shadow-lg shadow-yellow-100 flex items-center justify-between">
-                                <div><p className="text-xs font-bold uppercase opacity-60">Aksesori</p><h3 className="text-5xl font-black">{accessCount}</h3></div>
-                                <i className="fas fa-plug text-6xl opacity-20"></i>
-                            </div>
-                            <div className="md:col-span-2 bg-white p-6 rounded-3xl border border-slate-100 flex items-center space-x-6">
-                                <div className="w-14 h-14 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center text-2xl"><i className="fas fa-history"></i></div>
-                                <div>
-                                    <p className="text-slate-400 text-[10px] font-bold uppercase tracking-widest">Aktiviti Terakhir</p>
-                                    <h4 className="font-bold text-slate-700">{recentRecords.length > 0 ? `Rekod terakhir oleh ${recentRecords[0].userName}` : 'Tiada rekod lagi.'}</h4>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+            const textLastActivity = document.getElementById('text-last-activity');
+            const textLastActivitySub = document.getElementById('text-last-activity-sub');
+            if (records.length > 0) {
+                textLastActivity.textContent = 'Rekod oleh ' + records[0].userName + ' (' + records[0].status + ') - ' + records[0].equipmentTypes.join(', ') + ' #' + records[0].equipmentNo;
+                textLastActivitySub.textContent = 'Tarikh: ' + records[0].borrowDate + ' | Masa: ' + records[0].startTime + ' - ' + records[0].endTime;
+            } else {
+                textLastActivity.textContent = 'Tiada rekod lagi.';
+                textLastActivitySub.textContent = '';
+            }
+            
+            renderTableRecords();
+        }
 
-                    <div className="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden">
-                        <div className="px-8 py-5 border-b bg-slate-50/50 flex justify-between items-center">
-                            <h3 className="font-bold text-slate-800 uppercase text-xs tracking-widest">Senarai 5 Rekod Terkini</h3>
-                        </div>
-                        <div className="overflow-x-auto">
-                            <table className="w-full text-left text-sm">
-                                <thead className="bg-slate-50 text-slate-400 uppercase text-[10px] font-black">
-                                    <tr><th className="px-8 py-4">Nama</th><th className="px-8 py-4">Peralatan</th><th className="px-8 py-4">Tarikh</th><th className="px-8 py-4">Tujuan</th></tr>
-                                </thead>
-                                <tbody className="divide-y divide-slate-50">
-                                    {recentRecords.slice(0,5).map(r => (
-                                        <tr key={r.id} className="hover:bg-blue-50/30 transition-colors">
-                                            <td className="px-8 py-4 font-bold text-slate-700">{r.userName}<br/><span className="text-[10px] text-blue-500 uppercase">{r.status}</span></td>
-                                            <td className="px-8 py-4 text-slate-500 font-medium">{r.equipmentTypes.join(', ')} <span className="text-xs text-slate-400">(#{r.equipmentNo})</span></td>
-                                            <td className="px-8 py-4 text-slate-500">{r.borrowDate}<br/><span className="text-[10px] opacity-60">{r.startTime}</span></td>
-                                            <td className="px-8 py-4 text-slate-400 italic line-clamp-1">"{r.purpose}"</td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-            );
-        };
+        function renderTableRecords() {
+            const tbody = document.getElementById('table-records-body');
+            tbody.innerHTML = '';
+            
+            let list = state.records;
+            const filter = state.tableFilter;
 
-        // --- KOMPONEN: BORANG PINJAMAN ---
-        const IctUsageForm = ({ onSuccess }) => {
-            const [loading, setLoading] = useState(false);
-            const [formData, setFormData] = useState({
-                status: UserStatus.GURU, userName: '', equipmentTypes: [], equipmentNo: '1',
-                borrowDate: new Date().toISOString().split('T')[0],
-                returnDate: new Date().toISOString().split('T')[0],
-                startTime: '', endTime: '', purpose: ''
+            if (filter.status !== 'semua') {
+                list = list.filter(r => r.status === filter.status);
+            }
+            if (filter.search.trim()) {
+                const q = filter.search.toLowerCase();
+                list = list.filter(r => 
+                    r.userName.toLowerCase().includes(q) ||
+                    r.purpose.toLowerCase().includes(q) ||
+                    r.equipmentTypes.some(eq => eq.toLowerCase().includes(q)) ||
+                    (r.borrowDate && r.borrowDate.includes(q))
+                );
+            }
+
+            const totalFiltered = list.length;
+            const displayList = filter.pageSize === 0 ? list : list.slice(0, filter.pageSize);
+
+            document.getElementById('text-table-summary').textContent = 'Menunjukkan ' + displayList.length + ' daripada ' + state.records.length + ' rekod keseluruhan';
+
+            if (displayList.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4" class="px-6 py-10 text-center text-slate-400 font-medium">Tiada rekod ditemui untuk kriteria ini.</td></tr>';
+                return;
+            }
+
+            displayList.forEach(r => {
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-blue-50/20 transition-colors";
+                const equipStr = r.equipmentTypes.join(', ');
+                const statusBadgeClass = r.status === 'Guru' ? 'bg-purple-50 text-purple-600' : 'bg-blue-50 text-blue-600';
+                
+                tr.innerHTML = 
+                    '<td class="px-6 py-4">' +
+                        '<div class="font-bold text-slate-700">' + escapeHtml(r.userName) + '</div>' +
+                        '<span class="inline-block mt-1 px-2.5 py-0.5 text-[10px] font-bold rounded-full uppercase ' + statusBadgeClass + '">' +
+                            escapeHtml(r.status) +
+                        '</span>' +
+                    '</td>' +
+                    '<td class="px-6 py-4 text-slate-500 font-medium">' +
+                        '<div>' + escapeHtml(equipStr) + '</div>' +
+                        '<span class="text-[10px] text-slate-400 font-bold uppercase">#' + escapeHtml(r.equipmentNo) + '</span>' +
+                    '</td>' +
+                    '<td class="px-6 py-4 text-slate-500">' +
+                        '<div class="font-semibold text-slate-600">' + escapeHtml(r.borrowDate) + '</div>' +
+                        '<span class="text-[10px] text-slate-400 font-medium">' + escapeHtml(r.startTime) + ' - ' + escapeHtml(r.endTime) + '</span>' +
+                    '</td>' +
+                    '<td class="px-6 py-4 text-slate-500 italic max-w-xs truncate">"' + escapeHtml(r.purpose) + '"</td>';
+                tbody.appendChild(tr);
+            });
+        }
+
+        function escapeHtml(str) {
+            if (!str) return '';
+            return String(str)
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+
+        // --- INITIALIZATION & EVENT LISTENERS ---
+        function initApp() {
+            state.records = getRecords();
+            
+            // Header & Navigation Clicks
+            document.getElementById('btn-header-logo').addEventListener('click', () => switchTab('form'));
+            document.getElementById('nav-form-desktop').addEventListener('click', () => switchTab('form'));
+            document.getElementById('nav-dash-desktop').addEventListener('click', () => switchTab('dashboard'));
+            document.getElementById('nav-form-mobile').addEventListener('click', () => switchTab('form'));
+            document.getElementById('nav-dash-mobile').addEventListener('click', () => switchTab('dashboard'));
+            
+            // Form Field Changes
+            document.getElementById('input-status').addEventListener('change', (e) => {
+                state.formData.status = e.target.value;
+            });
+            document.getElementById('input-username').addEventListener('input', (e) => {
+                state.formData.userName = e.target.value;
+            });
+            document.getElementById('input-date').addEventListener('change', (e) => {
+                state.formData.borrowDate = e.target.value;
+            });
+            document.getElementById('input-starttime').addEventListener('change', (e) => {
+                state.formData.startTime = e.target.value;
+            });
+            document.getElementById('input-purpose').addEventListener('input', (e) => {
+                state.formData.purpose = e.target.value;
+            });
+            
+            // Equipment Button Toggles
+            document.getElementById('btn-equip-laptop').addEventListener('click', () => toggleEquipmentType('Komputer Riba'));
+            document.getElementById('btn-equip-accessory').addEventListener('click', () => toggleEquipmentType('Aksesori'));
+            
+            // Equipment No Selection
+            document.querySelectorAll('.btn-no').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    setEquipmentNo(btn.getAttribute('data-val'));
+                });
+            });
+            
+            // Period Filtering Selection
+            document.querySelectorAll('.btn-period').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    setPeriod(btn.getAttribute('data-period'));
+                });
             });
 
-            useEffect(() => {
-                const now = new Date();
-                const h = String(now.getHours()).padStart(2, '0');
-                const m = String(now.getMinutes()).padStart(2, '0');
-                const eh = String((now.getHours() + 1) % 24).padStart(2, '0');
-                setFormData(prev => ({ ...prev, startTime: `${h}:${m}`, endTime: `${eh}:${m}` }));
-            }, []);
+            // Butang Segerak Spreadsheet
+            const btnSync = document.getElementById('btn-sync-sheets');
+            if (btnSync) {
+                btnSync.addEventListener('click', syncWithSpreadsheet);
+            }
 
-            const handleSubmit = async (e) => {
+            // Table Filter Listeners
+            const searchInput = document.getElementById('table-search-input');
+            if (searchInput) {
+                searchInput.addEventListener('input', (e) => {
+                    state.tableFilter.search = e.target.value;
+                    renderTableRecords();
+                });
+            }
+            const statusSelect = document.getElementById('table-status-select');
+            if (statusSelect) {
+                statusSelect.addEventListener('change', (e) => {
+                    state.tableFilter.status = e.target.value;
+                    renderTableRecords();
+                });
+            }
+            const pageSizeSelect = document.getElementById('table-pagesize-select');
+            if (pageSizeSelect) {
+                pageSizeSelect.addEventListener('change', (e) => {
+                    state.tableFilter.pageSize = Number(e.target.value);
+                    renderTableRecords();
+                });
+            }
+            
+            // Toast Manual Close
+            document.getElementById('btn-close-toast').addEventListener('click', closeToast);
+            
+            // Form submission logic
+            const form = document.getElementById('ict-form');
+            form.addEventListener('submit', async (e) => {
                 e.preventDefault();
-                if (!formData.userName || formData.equipmentTypes.length === 0 || !formData.purpose) return alert("Sila lengkapkan semua maklumat wajib!");
-                setLoading(true);
-                await onSuccess({ ...formData, id: Math.random().toString(36).substr(2, 9), createdAt: new Date().toISOString() });
-                setLoading(false);
-                setFormData(p => ({ ...p, userName: '', purpose: '', equipmentTypes: [] }));
-            };
+                
+                const errBox = document.getElementById('form-error-box');
+                const errText = document.getElementById('form-error-text');
 
-            const toggleEq = (t) => setFormData(p => ({ ...p, equipmentTypes: p.equipmentTypes.includes(t) ? p.equipmentTypes.filter(x => x!==t) : [...p.equipmentTypes, t] }));
+                function showError(msg) {
+                    if (errBox && errText) {
+                        errText.textContent = msg;
+                        errBox.classList.remove('hidden');
+                    }
+                }
 
-            return (
-                <div className="bg-white rounded-3xl shadow-2xl overflow-hidden fade-in border border-slate-100">
-                    <div className="bg-blue-600 p-10 text-white text-center">
-                        <i className="fas fa-edit text-4xl mb-4 opacity-40"></i>
-                        <h3 className="text-2xl font-black uppercase tracking-widest">Borang Pendaftaran</h3>
-                        <p className="text-blue-100 text-xs mt-2 font-medium">Sila isi maklumat penggunaan anda secara jujur.</p>
-                    </div>
-                    <form onSubmit={handleSubmit} className="p-10 space-y-10">
-                        {/* Bahagian 1 */}
-                        <div className="space-y-4">
-                            <div className="flex items-center space-x-2 text-blue-600 font-black text-[10px] uppercase tracking-[0.2em]"><span className="w-6 h-6 rounded-full bg-blue-100 flex items-center justify-center">1</span><span>Profil Pengguna</span></div>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div className="space-y-1"><label className="text-[10px] font-black text-slate-400 uppercase">Status</label><select value={formData.status} onChange={e => setFormData({...formData, status: e.target.value})} className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-blue-500 outline-none transition-all font-bold text-slate-700"><option value={UserStatus.GURU}>Guru</option><option value={UserStatus.MURID}>Murid</option></select></div>
-                                <div className="space-y-1"><label className="text-[10px] font-black text-slate-400 uppercase">Nama Penuh</label><input type="text" value={formData.userName} onChange={e => setFormData({...formData, userName: e.target.value})} placeholder="Cth: Ahmad bin Bakar" className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-blue-500 outline-none transition-all font-bold" required /></div>
-                            </div>
-                        </div>
+                if (!state.formData.userName.trim()) {
+                    showError('Sila masukkan nama penuh!');
+                    return;
+                }
+                if (state.formData.equipmentTypes.length === 0) {
+                    showError('Sila pilih sekurang-kurangnya satu jenis peralatan (Laptop / Aksesori)!');
+                    return;
+                }
+                if (!state.formData.purpose.trim()) {
+                    showError('Sila masukkan tujuan penggunaan!');
+                    return;
+                }
+                if (errBox) errBox.classList.add('hidden');
+                
+                const btnSubmit = document.getElementById('btn-submit');
+                const iconSubmit = document.getElementById('icon-submit');
+                const iconSpinner = document.getElementById('icon-spinner');
+                const textSubmit = document.getElementById('text-submit');
+                
+                btnSubmit.disabled = true;
+                iconSubmit.classList.add('hidden');
+                iconSpinner.classList.remove('hidden');
+                textSubmit.textContent = "Menghantar...";
+                
+                const completeRecord = {
+                    id: Math.random().toString(36).substring(2, 11),
+                    status: state.formData.status,
+                    userName: state.formData.userName.trim(),
+                    equipmentTypes: [...state.formData.equipmentTypes],
+                    equipmentNo: state.formData.equipmentNo,
+                    borrowDate: state.formData.borrowDate,
+                    returnDate: state.formData.borrowDate,
+                    startTime: state.formData.startTime,
+                    endTime: '',
+                    purpose: state.formData.purpose.trim(),
+                    createdAt: new Date().toISOString()
+                };
+                
+                try {
+                    const parts = state.formData.startTime.split(':');
+                    const eh = String((parseInt(parts[0], 10) + 1) % 24).padStart(2, '0');
+                    completeRecord.endTime = eh + ':' + parts[1];
+                } catch (e) {
+                    completeRecord.endTime = state.formData.startTime;
+                }
+                
+                const saved = await saveRecord(completeRecord);
+                
+                btnSubmit.disabled = false;
+                iconSubmit.classList.remove('hidden');
+                iconSpinner.classList.add('hidden');
+                textSubmit.textContent = "Hantar Rekod";
+                
+                if (saved) {
+                    showToast();
+                    initFormDefaults();
+                    switchTab('dashboard');
+                }
+            });
+            
+            initFormDefaults();
+        }
 
-                        {/* Bahagian 2 */}
-                        <div className="space-y-4">
-                            <div className="flex items-center space-x-2 text-blue-600 font-black text-[10px] uppercase tracking-[0.2em]"><span className="w-6 h-6 rounded-full bg-blue-100 flex items-center justify-center">2</span><span>Peralatan</span></div>
-                            <div className="grid grid-cols-2 gap-4">
-                                <button type="button" onClick={() => toggleEq(EquipmentType.LAPTOP)} className={`p-6 border-2 rounded-3xl transition-all flex flex-col items-center space-y-2 ${formData.equipmentTypes.includes(EquipmentType.LAPTOP) ? 'border-blue-600 bg-blue-50 text-blue-700 shadow-inner' : 'border-slate-100 bg-slate-50 text-slate-400'}`}><i className="fas fa-laptop text-2xl"></i><span className="font-black text-xs uppercase">Laptop</span></button>
-                                <button type="button" onClick={() => toggleEq(EquipmentType.ACCESSORIES)} className={`p-6 border-2 rounded-3xl transition-all flex flex-col items-center space-y-2 ${formData.equipmentTypes.includes(EquipmentType.ACCESSORIES) ? 'border-blue-600 bg-blue-50 text-blue-700 shadow-inner' : 'border-slate-100 bg-slate-50 text-slate-400'}`}><i className="fas fa-plug text-2xl"></i><span className="font-black text-xs uppercase">Aksesori</span></button>
-                            </div>
-                            <div className="space-y-1"><label className="text-[10px] font-black text-slate-400 uppercase">No. Peralatan</label><div className="flex flex-wrap gap-2">{['1','2','3','4','5'].map(n => (<button key={n} type="button" onClick={() => setFormData({...formData, equipmentNo: n})} className={`w-11 h-11 rounded-xl font-black transition-all border-2 ${formData.equipmentNo === n ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-slate-400 border-slate-100'}`}>{n}</button>))}</div></div>
-                        </div>
-
-                        {/* Bahagian 3 */}
-                        <div className="space-y-4">
-                            <div className="flex items-center space-x-2 text-blue-600 font-black text-[10px] uppercase tracking-[0.2em]"><span className="w-6 h-6 rounded-full bg-blue-100 flex items-center justify-center">3</span><span>Masa & Tujuan</span></div>
-                            <div className="grid grid-cols-2 gap-4">
-                                <div className="space-y-1"><label className="text-[10px] font-black text-slate-400 uppercase">Tarikh</label><input type="date" value={formData.borrowDate} onChange={e => setFormData({...formData, borrowDate: e.target.value, returnDate: e.target.value})} className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none font-bold" /></div>
-                                <div className="space-y-1"><label className="text-[10px] font-black text-slate-400 uppercase">Masa</label><input type="time" value={formData.startTime} onChange={e => setFormData({...formData, startTime: e.target.value})} className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none font-bold" /></div>
-                            </div>
-                            <div className="space-y-1"><label className="text-[10px] font-black text-slate-400 uppercase">Tujuan Penggunaan</label><textarea value={formData.purpose} onChange={e => setFormData({...formData, purpose: e.target.value})} placeholder="Cth: PdP Sains / Latihan Murid" rows="3" className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-blue-500 outline-none resize-none font-bold" required></textarea></div>
-                        </div>
-
-                        <button type="submit" disabled={loading} className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-blue-300 text-white p-6 rounded-3xl font-black uppercase tracking-widest shadow-2xl shadow-blue-200 transition-all flex items-center justify-center space-x-3 text-lg">
-                            {loading ? <><i className="fas fa-spinner fa-spin"></i><span>Menghantar...</span></> : <><i className="fas fa-paper-plane"></i><span>Hantar Rekod</span></>}
-                        </button>
-                    </form>
-                </div>
-            );
-        };
-
-        // --- KOMPONEN UTAMA ---
-        const App = () => {
-            const [tab, setTab] = useState('form');
-            const [records, setRecords] = useState([]);
-            const [showToast, setShowToast] = useState(false);
-
-            useEffect(() => { setRecords(storageService.getRecords()); }, []);
-
-            const handleSuccess = async (r) => { 
-                await storageService.saveRecord(r); 
-                setShowToast(true); 
-                setRecords(storageService.getRecords()); 
-                setTab('dashboard'); 
-            };
-
-            return (
-                <div className="min-h-screen pb-20">
-                    <header className="bg-white/80 backdrop-blur-md border-b border-slate-100 sticky top-0 z-40 p-4">
-                        <div className="max-w-5xl mx-auto flex items-center justify-between">
-                            <div className="flex items-center space-x-5 cursor-pointer" onClick={() => setTab('form')}>
-                                <img src="https://i.postimg.cc/Xv6nTH13/Untitled-design-(2).png" className="h-14 md:h-16 drop-shadow-sm" alt="Logo SJKC" />
-                                <div>
-                                    <h1 className="text-sm md:text-lg font-black uppercase text-slate-800 leading-none">REKOD PINJAMAN PERALATAN ICT</h1>
-                                    <p className="text-xs md:text-sm text-blue-600 font-bold uppercase tracking-widest mt-1">SJKC CHI CHIH</p>
-                                </div>
-                            </div>
-                            <div className="hidden md:flex bg-slate-100 p-1.5 rounded-2xl space-x-1">
-                                <button onClick={() => setTab('form')} className={`px-6 py-2.5 rounded-xl font-black text-xs uppercase tracking-widest transition-all ${tab === 'form' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}>Rekod Baru</button>
-                                <button onClick={() => setTab('dashboard')} className={`px-6 py-2.5 rounded-xl font-black text-xs uppercase tracking-widest transition-all ${tab === 'dashboard' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}>Dashboard</button>
-                            </div>
-                        </div>
-                    </header>
-
-                    <main className="max-w-5xl mx-auto p-6 md:p-10">
-                        {tab === 'form' ? (
-                            <div className="max-w-2xl mx-auto"><IctUsageForm onSuccess={handleSuccess} /></div>
-                        ) : (
-                            <Dashboard recentRecords={records} />
-                        )}
-                    </main>
-
-                    {/* Navigasi Mobile */}
-                    <nav className="md:hidden fixed bottom-6 left-1/2 -translate-x-1/2 w-[85%] max-w-sm glass-card border border-slate-200 shadow-2xl rounded-3xl flex justify-around p-2 z-50">
-                        <button onClick={() => setTab('form')} className={`flex flex-col items-center justify-center py-3 px-8 rounded-2xl transition-all ${tab === 'form' ? 'bg-blue-600 text-white shadow-lg' : 'text-slate-400'}`}><i className="fas fa-plus-circle text-xl mb-1"></i><span className="text-[9px] font-black uppercase">Tambah</span></button>
-                        <button onClick={() => setTab('dashboard')} className={`flex flex-col items-center justify-center py-3 px-8 rounded-2xl transition-all ${tab === 'dashboard' ? 'bg-blue-600 text-white shadow-lg' : 'text-slate-400'}`}><i className="fas fa-chart-pie text-xl mb-1"></i><span className="text-[9px] font-black uppercase">Statistik</span></button>
-                    </nav>
-
-                    <SuccessToast show={showToast} onClose={() => setShowToast(false)} />
-                </div>
-            );
-        };
-
-        const root = ReactDOM.createRoot(document.getElementById('root'));
-        root.render(<App />);
+        if (document.readyState === 'loading') {
+            window.addEventListener('DOMContentLoaded', initApp);
+        } else {
+            initApp();
+        }
     </script>
-<script type="module" src="/index.tsx"></script>
 </body>
 </html>
